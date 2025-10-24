@@ -5,14 +5,14 @@ package_manager = "yarn"
 resolution = true
 skip-lint = false
 
-[programs.localnet]
-pigeon_program = "B1kqTcmKKi44qPBjpnCM1yJyvunrfkwRvQLuEKdKLAbj"
+[programs.devnet]
+pigeon_program = "8S5v7DvbagdFYZzDL9RGnmqHZ12CJynxkW3Wq374tHgj"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "id.json"
 
 [scripts]

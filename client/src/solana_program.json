@@ -1,97 +1,12 @@
 {
-  "address": "B1kqTcmKKi44qPBjpnCM1yJyvunrfkwRvQLuEKdKLAbj",
+  "address": "8S5v7DvbagdFYZzDL9RGnmqHZ12CJynxkW3Wq374tHgj",
   "metadata": {
-    "name": "solana_program",
+    "name": "pigeon_program",
     "version": "0.1.0",
     "spec": "0.1.0",
     "description": "Created with Anchor"
   },
   "instructions": [
-    {
-      "name": "initialize_chat",
-      "discriminator": [
-        4,
-        81,
-        179,
-        155,
-        220,
-        138,
-        192,
-        182
-      ],
-      "accounts": [
-        {
-          "name": "chat_account",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  104,
-                  97,
-                  116
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "user",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "send_message",
-      "discriminator": [
-        57,
-        40,
-        34,
-        178,
-        189,
-        10,
-        65,
-        26
-      ],
-      "accounts": [
-        {
-          "name": "chat_account",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  104,
-                  97,
-                  116
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "user",
-          "signer": true
-        }
-      ],
-      "args": [
-        {
-          "name": "text",
-          "type": "string"
-        }
-      ]
-    }
-    ,
     {
       "name": "send_dm",
       "discriminator": [
@@ -112,7 +27,20 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [99, 104, 97, 116]
+                "value": [
+                  99,
+                  104,
+                  97,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "sender"
+              },
+              {
+                "kind": "account",
+                "path": "receiver"
               }
             ]
           }
@@ -167,11 +95,20 @@
         "kind": "struct",
         "fields": [
           {
+            "name": "participants",
+            "type": {
+              "array": [
+                "pubkey",
+                2
+              ]
+            }
+          },
+          {
             "name": "messages",
             "type": {
               "vec": {
                 "defined": {
-                  "name": "Message"
+                  "name": "DirectMessage"
                 }
               }
             }
@@ -180,7 +117,7 @@
       }
     },
     {
-      "name": "Message",
+      "name": "DirectMessage",
       "type": {
         "kind": "struct",
         "fields": [
