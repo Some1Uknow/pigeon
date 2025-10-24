@@ -1,0 +1,203 @@
+{
+  "address": "B1kqTcmKKi44qPBjpnCM1yJyvunrfkwRvQLuEKdKLAbj",
+  "metadata": {
+    "name": "solana_program",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "initialize_chat",
+      "discriminator": [
+        4,
+        81,
+        179,
+        155,
+        220,
+        138,
+        192,
+        182
+      ],
+      "accounts": [
+        {
+          "name": "chat_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  104,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "send_message",
+      "discriminator": [
+        57,
+        40,
+        34,
+        178,
+        189,
+        10,
+        65,
+        26
+      ],
+      "accounts": [
+        {
+          "name": "chat_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  104,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "user",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "text",
+          "type": "string"
+        }
+      ]
+    }
+    ,
+    {
+      "name": "send_dm",
+      "discriminator": [
+        98,
+        158,
+        242,
+        215,
+        245,
+        45,
+        228,
+        233
+      ],
+      "accounts": [
+        {
+          "name": "chat_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [99, 104, 97, 116]
+              }
+            ]
+          }
+        },
+        {
+          "name": "sender",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "receiver"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "text",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "ChatAccount",
+      "discriminator": [
+        188,
+        218,
+        213,
+        242,
+        64,
+        84,
+        104,
+        17
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "MessageTooLong",
+      "msg": "Message too long!"
+    }
+  ],
+  "types": [
+    {
+      "name": "ChatAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "messages",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "Message"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Message",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "sender",
+            "type": "pubkey"
+          },
+          {
+            "name": "text",
+            "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    }
+  ]
+}
