@@ -32,6 +32,8 @@ export default function Chats() {
   const navigate = useNavigate();
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChat, setActiveChat] = useState<Chat | null>(null);
+  const [sidebarWidth, setSidebarWidth] = useState<number>(280);
+  const [isResizing, setIsResizing] = useState<boolean>(false);
   const [input, setInput] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [newAddress, setNewAddress] = useState("");
@@ -151,6 +153,28 @@ export default function Chats() {
       setActiveChat(null);
     }
   }, [wallet.connected, discoverUserChats]);
+
+  const startResizing = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+    const startX = e.clientX;
+    const startWidth = sidebarWidth;
+
+    const onMove = (ev: MouseEvent) => {
+      const delta = ev.clientX - startX;
+      const newWidth = Math.min(520, Math.max(160, startWidth + delta));
+      setSidebarWidth(newWidth);
+    };
+
+    const onUp = () => {
+      setIsResizing(false);
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  };
 
   // Devnet: no localnet-specific helpers or fallbacks
 
@@ -376,12 +400,26 @@ export default function Chats() {
 
   return (
     <div className="flex min-h-screen bg-linear-to-br from-[#050505] via-[#0a0a0a] to-[#141414] text-gray-100">
-      <ChatSidebar
-        chats={chats}
-        activeChat={activeChat}
-        onOpenChat={openChat}
-        onNewChat={() => setShowModal(true)}
-      />
+      <div
+        style={{ width: sidebarWidth }}
+        className={`flex-shrink-0 ${isResizing ? '' : 'transition-[width] duration-150 ease-out'}`}
+      >
+        <ChatSidebar
+          chats={chats}
+          activeChat={activeChat}
+          onOpenChat={openChat}
+          onNewChat={() => setShowModal(true)}
+        />
+      </div>
+
+      {/* draggable divider */}
+      <div
+        onMouseDown={startResizing}
+        className="w-3 cursor-col-resize flex items-center justify-center z-10"
+        title="Drag to resize sidebar"
+      >
+        <div className="w-[2px] h-10 bg-white/10 rounded" />
+      </div>
 
       <ChatWindow
         activeChat={activeChat}
