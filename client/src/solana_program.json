@@ -149,8 +149,17 @@
             "type": "pubkey"
           },
           {
-            "name": "encrypted_text",
-            "type": "bytes"
+            "name": "encrypted_payload",
+            "type": {
+              "array": [
+                "u8",
+                308
+              ]
+            }
+          },
+          {
+            "name": "payload_len",
+            "type": "u16"
           },
           {
             "name": "timestamp",

@@ -76,8 +76,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               )}
             </div>
             <p className="text-xs text-green-400 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
-              Online
+              <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+              Real-time
             </p>
           </div>
         </div>

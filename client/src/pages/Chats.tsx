@@ -13,6 +13,7 @@ import { useEncryption } from "../contexts/EncryptionContext";
 const PROGRAM_ID = new PublicKey((idl as any).address);
 const MAX_MESSAGE_LENGTH = 280;
 const MAX_MESSAGES_PER_CHAT = 10;
+const MIN_ENCRYPTED_LENGTH = 12 + 16; // Nonce (12) + Poly1305 tag (16)
 
 interface Message {
   sender: PublicKey;
@@ -45,8 +46,8 @@ export default function Chats() {
   const [loading, setLoading] = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
   
-  // Polling interval ref
-  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  // WebSocket subscription ID refs
+  const accountSubscriptionRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!wallet.connected) navigate("/");
@@ -74,66 +75,6 @@ export default function Chats() {
     return () => clearInterval(interval);
   }, [wallet.publicKey]);
 
-  // Load all chats on mount
-  useEffect(() => {
-    const discoverChats = async () => {
-      if (!wallet.publicKey) return;
-      
-      try {
-        const program = getProgram();
-        const accounts = await (program.account as any).chatAccount.all();
-        
-        const discoveredChats: Chat[] = [];
-        
-        for (const acc of accounts) {
-          try {
-            const sender = acc.account?.sender;
-            const receiver = acc.account?.receiver;
-            
-            // Skip invalid accounts (from old deployments)
-            if (!sender || !receiver) {
-              console.warn("Skipping invalid chat account:", acc.publicKey.toBase58());
-              continue;
-            }
-            
-            // Check if I'm involved in this chat
-            const iAmSender = sender.toBase58() === wallet.publicKey.toBase58();
-            const iAmReceiver = receiver.toBase58() === wallet.publicKey.toBase58();
-            
-            if (iAmSender || iAmReceiver) {
-              const otherParty = iAmSender ? receiver.toBase58() : sender.toBase58();
-              const isSentByMe = iAmSender;
-              
-              // Check if we already have this chat
-              const exists = discoveredChats.some(c => c.receiver === otherParty);
-              if (!exists) {
-                discoveredChats.push({
-                  receiver: otherParty,
-                  messages: [], // Will load when opened
-                  isSentByMe,
-                });
-              }
-            }
-          } catch (accErr) {
-            console.warn("Error processing chat account:", accErr);
-            continue;
-          }
-        }
-        
-        if (discoveredChats.length > 0) {
-          console.log(`📥 Discovered ${discoveredChats.length} chat(s)`);
-          setChats(discoveredChats);
-        }
-      } catch (err) {
-        console.error("Error discovering chats:", err);
-      }
-    };
-    
-    if (wallet.connected) {
-      void discoverChats();
-    }
-  }, [wallet.connected, wallet.publicKey]);
-
   // Auto-dismiss error after 5 seconds
   useEffect(() => {
     if (error) {
@@ -159,52 +100,6 @@ export default function Chats() {
     void initEncryption();
   }, [wallet.connected, encryption]);
 
-  // Poll for new messages in active chat
-  useEffect(() => {
-    if (!activeChat || !wallet.publicKey) {
-      // Clear polling when no active chat
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
-        pollingIntervalRef.current = null;
-      }
-      return;
-    }
-
-    // Function to refresh active chat messages
-    const refreshMessages = async () => {
-      try {
-        const msgs = await fetchChat(activeChat.receiver);
-        if (msgs.length !== activeChat.messages.length) {
-          // New messages detected
-          const updatedChat: Chat = { 
-            ...activeChat, 
-            messages: msgs 
-          };
-          setActiveChat(updatedChat);
-          
-          // Update in chats list
-          setChats((prev) => {
-            return prev.map((c) => 
-              c.receiver === activeChat.receiver ? updatedChat : c
-            );
-          });
-        }
-      } catch (err) {
-        console.error("Error polling messages:", err);
-      }
-    };
-
-    // Poll every 2 seconds for new messages
-    pollingIntervalRef.current = setInterval(refreshMessages, 2000);
-
-    return () => {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
-        pollingIntervalRef.current = null;
-      }
-    };
-  }, [activeChat, wallet.publicKey]);
-
   const getProgram = useCallback(() => {
     if (!wallet.publicKey) throw new Error("Wallet not connected");
     const provider = new anchor.AnchorProvider(
@@ -218,6 +113,148 @@ export default function Chats() {
     );
     return new anchor.Program(idl as any, provider);
   }, [wallet, connection]);
+
+  const orderParticipants = (a: PublicKey, b: PublicKey): [PublicKey, PublicKey] => {
+    return Buffer.compare(a.toBuffer(), b.toBuffer()) <= 0 ? [a, b] : [b, a];
+  };
+
+  const getChatPda = (a: PublicKey, b: PublicKey) => {
+    const seed = Buffer.from("chat");
+    const [first, second] = orderParticipants(a, b);
+    return PublicKey.findProgramAddressSync(
+      [seed, first.toBuffer(), second.toBuffer()],
+      PROGRAM_ID
+    );
+  };
+
+  // Subscribe to account changes for real-time updates using WebSockets
+  useEffect(() => {
+    if (!activeChat || !wallet.publicKey) {
+      // Cleanup subscription when no active chat
+      if (accountSubscriptionRef.current !== null) {
+        connection.removeAccountChangeListener(accountSubscriptionRef.current);
+        accountSubscriptionRef.current = null;
+      }
+      return;
+    }
+
+    const setupWebSocket = async () => {
+      try {
+        const receiver = new PublicKey(activeChat.receiver);
+        const [chatPda] = getChatPda(wallet.publicKey!, receiver);
+        
+        console.log("🔌 Setting up WebSocket subscription for chat:", chatPda.toBase58());
+        
+        // Subscribe to account changes
+        const subscriptionId = connection.onAccountChange(
+          chatPda,
+          async (accountInfo) => {
+            console.log("📨 Real-time update received!");
+            
+            try {
+              // Parse the account data using Anchor's BorshAccountsCoder
+              const coder = new anchor.BorshAccountsCoder(idl as any);
+              const decoded = coder.decode("chatAccount", accountInfo.data);
+              
+              if (decoded && decoded.messages) {
+                // Decrypt the messages
+                const messages = await Promise.all(
+                  decoded.messages.map(async (msg: any) => {
+                    try {
+                      const senderAddr = msg.sender.toBase58();
+                      const isMyMessage = senderAddr === wallet.publicKey?.toBase58();
+                      const otherPartyAddr = isMyMessage ? activeChat.receiver : senderAddr;
+                      
+                      if (encryption.isInitialized) {
+                        const rawPayload = msg.encryptedPayload as
+                          | Uint8Array
+                          | number[]
+                          | undefined;
+                        const payloadLength = Number(msg.payloadLen ?? 0);
+
+                        if (!rawPayload || payloadLength < MIN_ENCRYPTED_LENGTH) {
+                          console.warn("⚠️ Invalid encrypted data in subscription payload", {
+                            exists: !!rawPayload,
+                            length: payloadLength,
+                            payloadType: rawPayload?.constructor?.name,
+                            sample: Array.from(rawPayload || []).slice(0, 10),
+                          });
+                          return {
+                            sender: msg.sender,
+                            text: "⚠️ [Message from incompatible version]",
+                            timestamp: msg.timestamp,
+                          };
+                        }
+
+                        const payloadBuffer = rawPayload instanceof Uint8Array
+                          ? rawPayload
+                          : new Uint8Array(rawPayload);
+                        const usableLength = Math.min(payloadBuffer.length, payloadLength);
+                        const encryptedData = payloadBuffer.slice(0, usableLength);
+                        const plaintext = await encryption.decryptMessage(encryptedData, otherPartyAddr);
+                        
+                        return {
+                          sender: msg.sender,
+                          text: plaintext,
+                          timestamp: msg.timestamp,
+                        };
+                      } else {
+                        return {
+                          sender: msg.sender,
+                          text: "🔒 [Encrypted - Sign message to decrypt]",
+                          timestamp: msg.timestamp,
+                        };
+                      }
+                    } catch (decryptErr) {
+                      console.error("Failed to decrypt message:", decryptErr);
+                      return {
+                        sender: msg.sender,
+                        text: "⚠️ [Decryption failed]",
+                        timestamp: msg.timestamp,
+                      };
+                    }
+                  })
+                );
+                
+                // Update active chat with new messages
+                const updatedChat: Chat = { 
+                  ...activeChat, 
+                  messages 
+                };
+                setActiveChat(updatedChat);
+                
+                // Update in chats list
+                setChats((prev) => {
+                  return prev.map((c) => 
+                    c.receiver === activeChat.receiver ? updatedChat : c
+                  );
+                });
+              }
+            } catch (err) {
+              console.error("Error processing WebSocket update:", err);
+            }
+          },
+          "confirmed"
+        );
+        
+        accountSubscriptionRef.current = subscriptionId;
+        console.log("✅ WebSocket subscription active (ID:", subscriptionId, ")");
+        
+      } catch (err) {
+        console.error("Error setting up WebSocket:", err);
+      }
+    };
+
+    void setupWebSocket();
+
+    return () => {
+      if (accountSubscriptionRef.current !== null) {
+        connection.removeAccountChangeListener(accountSubscriptionRef.current);
+        accountSubscriptionRef.current = null;
+        console.log("🔌 WebSocket subscription cleaned up");
+      }
+    };
+  }, [activeChat, wallet.publicKey, connection, encryption]);
 
   // Discover existing chats on devnet where the connected wallet is a participant
   const discoverUserChats = useCallback(async () => {
@@ -308,19 +345,6 @@ export default function Chats() {
 
   // Devnet: no localnet-specific helpers or fallbacks
 
-  const orderParticipants = (a: PublicKey, b: PublicKey): [PublicKey, PublicKey] => {
-    return Buffer.compare(a.toBuffer(), b.toBuffer()) <= 0 ? [a, b] : [b, a];
-  };
-
-  const getChatPda = (a: PublicKey, b: PublicKey) => {
-    const seed = Buffer.from("chat");
-    const [first, second] = orderParticipants(a, b);
-    return PublicKey.findProgramAddressSync(
-      [seed, first.toBuffer(), second.toBuffer()],
-      PROGRAM_ID
-    );
-  };
-
   // Fetch chat messages and decrypt them
   const fetchChat = async (receiverAddr: string) => {
     try {
@@ -348,16 +372,19 @@ export default function Chats() {
             
             // Decrypt the message
             if (encryption.isInitialized) {
-              // Check if encryptedText exists and has valid length
-              if (!msg.encryptedText || msg.encryptedText.length < 28) {
+              const rawPayload = msg.encryptedPayload as
+                | Uint8Array
+                | number[]
+                | undefined;
+              const payloadLength = Number(msg.payloadLen ?? 0);
+
+              if (!rawPayload || payloadLength < MIN_ENCRYPTED_LENGTH) {
                 // Minimum: 12 (nonce) + 16 (auth tag) = 28 bytes
                 console.warn("⚠️ Invalid encrypted data:", {
-                  exists: !!msg.encryptedText,
-                  length: msg.encryptedText?.length,
-                  type: typeof msg.encryptedText,
-                  isBuffer: Buffer.isBuffer(msg.encryptedText),
-                  isArray: Array.isArray(msg.encryptedText),
-                  sample: msg.encryptedText?.slice(0, 10)
+                  exists: !!rawPayload,
+                  length: payloadLength,
+                  payloadType: rawPayload?.constructor?.name,
+                  sample: Array.from(rawPayload || []).slice(0, 10)
                 });
                 return {
                   sender: msg.sender,
@@ -366,7 +393,11 @@ export default function Chats() {
                 };
               }
               
-              const encryptedData = new Uint8Array(msg.encryptedText);
+              const payloadBuffer = rawPayload instanceof Uint8Array
+                ? rawPayload
+                : new Uint8Array(rawPayload);
+              const usableLength = Math.min(payloadBuffer.length, payloadLength);
+              const encryptedData = payloadBuffer.slice(0, usableLength);
               const plaintext = await encryption.decryptMessage(encryptedData, otherPartyAddr);
               
               return {

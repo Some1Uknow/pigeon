@@ -14,14 +14,83 @@ describe("Pigeon DM Chat", () => {
   const userC = web3.Keypair.generate();
 
   const CHAT_SEED = Buffer.from("chat");
+  const NONCE_LENGTH = 12;
+  const AUTH_TAG_LENGTH = 16;
 
-  // Get PDA based on sender and receiver order (not sorted!)
-  const getChatPda = (sender: web3.PublicKey, receiver: web3.PublicKey) => {
+  const orderParticipants = (
+    a: web3.PublicKey,
+    b: web3.PublicKey
+  ): [web3.PublicKey, web3.PublicKey] => {
+    return Buffer.compare(a.toBuffer(), b.toBuffer()) <= 0 ? [a, b] : [b, a];
+  };
+
+  const getChatPda = (walletA: web3.PublicKey, walletB: web3.PublicKey) => {
+    const [first, second] = orderParticipants(walletA, walletB);
     return web3.PublicKey.findProgramAddressSync(
-      [CHAT_SEED, sender.toBuffer(), receiver.toBuffer()],
+      [CHAT_SEED, first.toBuffer(), second.toBuffer()],
       program.programId
     );
   };
+
+  const encodeMessage = (plaintext: string): Uint8Array => {
+    const messageBytes = Buffer.from(plaintext, "utf8");
+    const payload = new Uint8Array(
+      NONCE_LENGTH + messageBytes.length + AUTH_TAG_LENGTH
+    );
+    payload.set(messageBytes, NONCE_LENGTH);
+    // Leave nonce and auth tag as zeroed bytes for deterministic test data
+    return payload;
+  };
+
+  const decodeMessage = (
+    encryptedPayload: number[] | Uint8Array,
+    payloadLen: number
+  ): string => {
+    const raw =
+      encryptedPayload instanceof Uint8Array
+        ? encryptedPayload
+        : Uint8Array.from(encryptedPayload);
+    const usable = raw.slice(0, payloadLen);
+    if (usable.length < NONCE_LENGTH + AUTH_TAG_LENGTH) {
+      return "";
+    }
+    const textBytes = usable.slice(
+      NONCE_LENGTH,
+      usable.length - AUTH_TAG_LENGTH
+    );
+    return Buffer.from(textBytes).toString("utf8");
+  };
+
+  const sendEncryptedMessage = async (
+    sender: web3.Keypair,
+    recipient: web3.PublicKey,
+    payload: Uint8Array
+  ) => {
+    const [participantA, participantB] = orderParticipants(
+      sender.publicKey,
+      recipient
+    );
+    const [chatPda] = getChatPda(sender.publicKey, recipient);
+
+    await program.methods
+      .sendDm(Buffer.from(payload))
+      .accountsPartial({
+        authority: sender.publicKey,
+        participantA,
+        participantB,
+        systemProgram: web3.SystemProgram.programId,
+      })
+      .signers([sender])
+      .rpc();
+
+    return chatPda;
+  };
+
+  const sendPlaintextMessage = (
+    sender: web3.Keypair,
+    recipient: web3.PublicKey,
+    plaintext: string
+  ) => sendEncryptedMessage(sender, recipient, encodeMessage(plaintext));
 
   before(async () => {
     // Ensure the payer has sufficient funds on localnet for test transfers
@@ -63,260 +132,245 @@ describe("Pigeon DM Chat", () => {
   });
 
   describe("PDA Derivation", () => {
-    it("derives different PDAs based on sender/receiver order", async () => {
+    it("derives identical PDA regardless of participant order", async () => {
       const [pdaAtoB] = getChatPda(userA.publicKey, userB.publicKey);
       const [pdaBtoA] = getChatPda(userB.publicKey, userA.publicKey);
-      
-      assert.notEqual(
-        pdaAtoB.toBase58(), 
-        pdaBtoA.toBase58(), 
-        "PDAs should be different when sender/receiver order changes"
+
+      assert.equal(
+        pdaAtoB.toBase58(),
+        pdaBtoA.toBase58(),
+        "PDA should be independent of message direction"
       );
-      console.log(`  PDA (A->B): ${pdaAtoB.toBase58()}`);
-      console.log(`  PDA (B->A): ${pdaBtoA.toBase58()}`);
+      console.log(`  PDA (A,B): ${pdaAtoB.toBase58()}`);
     });
 
-    it("derives consistent PDA for same sender/receiver pair", async () => {
+    it("derives consistent PDA across repeated calls", async () => {
       const [pda1] = getChatPda(userA.publicKey, userB.publicKey);
       const [pda2] = getChatPda(userA.publicKey, userB.publicKey);
-      
+
       assert.equal(
-        pda1.toBase58(), 
-        pda2.toBase58(), 
-        "Same sender/receiver should always give same PDA"
+        pda1.toBase58(),
+        pda2.toBase58(),
+        "Stable PDA expected for same participant pair"
       );
     });
   });
 
   describe("Sending Messages", () => {
-    it("sends first DM (A -> B) and creates chat account", async () => {
-      const [chatPda] = getChatPda(userA.publicKey, userB.publicKey);
-
-      await program.methods
-        .sendDm("Hello from A to B!")
-        .accountsPartial({
-          sender: userA.publicKey,
-          receiver: userB.publicKey,
-          systemProgram: web3.SystemProgram.programId,
-        })
-        .signers([userA])
-        .rpc();
+    it("creates chat account and stores first encrypted message", async () => {
+      const chatPda = await sendPlaintextMessage(
+        userA,
+        userB.publicKey,
+        "Hello from A to B!"
+      );
 
       const account = await program.account.chatAccount.fetch(chatPda);
       assert.equal(account.messages.length, 1, "Should contain one message");
-      
+
       const msg = account.messages[0];
-      assert.equal(msg.text, "Hello from A to B!");
+      assert.equal(
+        decodeMessage(msg.encryptedPayload, msg.payloadLen),
+        "Hello from A to B!"
+      );
       assert.equal(msg.sender.toBase58(), userA.publicKey.toBase58());
       assert.ok(msg.timestamp.toNumber() > 0, "Should have valid timestamp");
-      
-      // Check participants were initialized
-      assert.equal(
-        account.participants[0].toBase58(), 
-        userA.publicKey.toBase58(),
-        "First participant should be sender"
+
+      const expectedParticipants = orderParticipants(
+        userA.publicKey,
+        userB.publicKey
+      ).map((p) => p.toBase58());
+      const actualParticipants = account.participants.map((p) => p.toBase58());
+      assert.deepEqual(
+        actualParticipants,
+        expectedParticipants,
+        "Participants stored in canonical order"
       );
-      assert.equal(
-        account.participants[1].toBase58(), 
-        userB.publicKey.toBase58(),
-        "Second participant should be receiver"
-      );
-      
-      console.log(`  ✅ Message sent at timestamp: ${msg.timestamp}`);
+
+      console.log(`  ✅ Message stored at timestamp: ${msg.timestamp}`);
     });
 
-    it("sends additional messages to same chat (A -> B)", async () => {
+    it("appends additional message from same sender", async () => {
+      await sendPlaintextMessage(
+        userA,
+        userB.publicKey,
+        "Second message from A"
+      );
+
       const [chatPda] = getChatPda(userA.publicKey, userB.publicKey);
-
-      await program.methods
-        .sendDm("Second message from A")
-        .accountsPartial({
-          sender: userA.publicKey,
-          receiver: userB.publicKey,
-          systemProgram: web3.SystemProgram.programId,
-        })
-        .signers([userA])
-        .rpc();
-
       const account = await program.account.chatAccount.fetch(chatPda);
       assert.equal(account.messages.length, 2, "Should contain two messages");
-      
+
       const lastMsg = account.messages[1];
-      assert.equal(lastMsg.text, "Second message from A");
+      assert.equal(
+        decodeMessage(lastMsg.encryptedPayload, lastMsg.payloadLen),
+        "Second message from A"
+      );
       assert.equal(lastMsg.sender.toBase58(), userA.publicKey.toBase58());
-      
+
       console.log(`  ✅ Total messages in chat: ${account.messages.length}`);
     });
 
-    it("creates separate chat when B initiates to A", async () => {
-      const [chatPdaBtoA] = getChatPda(userB.publicKey, userA.publicKey);
+    it("stores reply from other participant in same chat", async () => {
+      await sendPlaintextMessage(
+        userB,
+        userA.publicKey,
+        "Reply from B"
+      );
 
-      await program.methods
-        .sendDm("Hello from B to A!")
-        .accountsPartial({
-          sender: userB.publicKey,
-          receiver: userA.publicKey,
-          systemProgram: web3.SystemProgram.programId,
-        })
-        .signers([userB])
-        .rpc();
+      const [chatPda] = getChatPda(userA.publicKey, userB.publicKey);
+      const account = await program.account.chatAccount.fetch(chatPda);
+      assert.equal(account.messages.length, 3, "Should contain three messages");
 
-      const account = await program.account.chatAccount.fetch(chatPdaBtoA);
-      assert.equal(account.messages.length, 1, "Should be a new chat with one message");
-      
-      const msg = account.messages[0];
-      assert.equal(msg.text, "Hello from B to A!");
-      assert.equal(msg.sender.toBase58(), userB.publicKey.toBase58());
-      
-      // Verify A->B chat still has 2 messages
-      const [chatPdaAtoB] = getChatPda(userA.publicKey, userB.publicKey);
-      const accountAtoB = await program.account.chatAccount.fetch(chatPdaAtoB);
-      assert.equal(accountAtoB.messages.length, 2, "Original chat should still have 2 messages");
-      
-      console.log(`  ✅ Separate chats: A->B has ${accountAtoB.messages.length} msgs, B->A has ${account.messages.length} msg`);
+      const lastMsg = account.messages[2];
+      assert.equal(
+        decodeMessage(lastMsg.encryptedPayload, lastMsg.payloadLen),
+        "Reply from B"
+      );
+      assert.equal(lastMsg.sender.toBase58(), userB.publicKey.toBase58());
+
+      const expectedParticipants = orderParticipants(
+        userA.publicKey,
+        userB.publicKey
+      ).map((p) => p.toBase58());
+      const actualParticipants = account.participants.map((p) => p.toBase58());
+      assert.deepEqual(actualParticipants, expectedParticipants);
+
+      console.log(
+        `  ✅ Shared chat now contains ${account.messages.length} messages`
+      );
     });
 
-    it("sends multiple messages in succession", async () => {
-      const [chatPda] = getChatPda(userA.publicKey, userC.publicKey);
+    it("sends multiple messages in succession to another participant", async () => {
       const messages = ["Message 1", "Message 2", "Message 3"];
 
       for (const msg of messages) {
-        await program.methods
-          .sendDm(msg)
-          .accountsPartial({
-            sender: userA.publicKey,
-            receiver: userC.publicKey,
-            systemProgram: web3.SystemProgram.programId,
-          })
-          .signers([userA])
-          .rpc();
+        await sendPlaintextMessage(userA, userC.publicKey, msg);
       }
 
+      const [chatPda] = getChatPda(userA.publicKey, userC.publicKey);
       const account = await program.account.chatAccount.fetch(chatPda);
-      assert.equal(account.messages.length, 3, "Should contain three messages");
-      
+      assert.equal(account.messages.length, messages.length);
+
       messages.forEach((msg, idx) => {
-        assert.equal(account.messages[idx].text, msg, `Message ${idx} should match`);
+        assert.equal(
+          decodeMessage(account.messages[idx].encryptedPayload, account.messages[idx].payloadLen),
+          msg,
+          `Message ${idx} should match`
+        );
       });
-      
-      console.log(`  ✅ Successfully sent ${messages.length} messages in succession`);
+
+      console.log(
+        `  ✅ Successfully sent ${messages.length} messages in succession`
+      );
     });
 
-    it("handles maximum length message (280 chars)", async () => {
-      const [chatPda] = getChatPda(userC.publicKey, userA.publicKey);
+    it("handles maximum length plaintext (280 chars)", async () => {
       const maxText = "a".repeat(280);
+      await sendPlaintextMessage(userC, userA.publicKey, maxText);
 
-      await program.methods
-        .sendDm(maxText)
-        .accountsPartial({
-          sender: userC.publicKey,
-          receiver: userA.publicKey,
-          systemProgram: web3.SystemProgram.programId,
-        })
-        .signers([userC])
-        .rpc();
-
+      const [chatPda] = getChatPda(userA.publicKey, userC.publicKey);
       const account = await program.account.chatAccount.fetch(chatPda);
-      assert.equal(account.messages[0].text.length, 280, "Should accept 280 char message");
-      
+      const lastMsg = account.messages[account.messages.length - 1];
+
+      assert.equal(
+        decodeMessage(lastMsg.encryptedPayload, lastMsg.payloadLen).length,
+        280,
+        "Should accept 280 char message"
+      );
+      assert.equal(
+        lastMsg.payloadLen,
+        NONCE_LENGTH + 280 + AUTH_TAG_LENGTH,
+        "Payload length should include nonce and auth tag"
+      );
+
       console.log(`  ✅ 280 character message accepted`);
     });
 
-    it("handles empty message", async () => {
-      const [chatPda] = getChatPda(userC.publicKey, userB.publicKey);
+    it("allows empty plaintext (nonce + tag only)", async () => {
+      await sendPlaintextMessage(userC, userB.publicKey, "");
 
-      await program.methods
-        .sendDm("")
-        .accountsPartial({
-          sender: userC.publicKey,
-          receiver: userB.publicKey,
-          systemProgram: web3.SystemProgram.programId,
-        })
-        .signers([userC])
-        .rpc();
-
+      const [chatPda] = getChatPda(userB.publicKey, userC.publicKey);
       const account = await program.account.chatAccount.fetch(chatPda);
-      assert.equal(account.messages[0].text, "", "Should accept empty message");
-      
-      console.log(`  ✅ Empty message accepted`);
+      const firstMsg = account.messages[0];
+
+      assert.equal(
+        decodeMessage(firstMsg.encryptedPayload, firstMsg.payloadLen),
+        "",
+        "Decoded message should be empty string"
+      );
+      assert.equal(
+        firstMsg.payloadLen,
+        NONCE_LENGTH + AUTH_TAG_LENGTH,
+        "Empty message still stores nonce + auth tag"
+      );
+
+      console.log(`  ✅ Empty plaintext accepted`);
     });
   });
 
   describe("Error Handling", () => {
-    it("rejects message exceeding 280 characters", async () => {
-      const [chatPda] = getChatPda(userA.publicKey, userB.publicKey);
-      const longText = "x".repeat(281);
+    it("rejects payload exceeding encrypted size limit", async () => {
+      const oversizedPayload = encodeMessage("x".repeat(281));
       let threw = false;
       let errorCode = "";
 
       try {
-        await program.methods
-          .sendDm(longText)
-          .accountsPartial({
-            sender: userA.publicKey,
-            receiver: userB.publicKey,
-            systemProgram: web3.SystemProgram.programId,
-          })
-          .signers([userA])
-          .rpc();
+        await sendEncryptedMessage(userA, userB.publicKey, oversizedPayload);
       } catch (err: any) {
         threw = true;
         errorCode = err.error?.errorCode?.code || "";
-        const msg = err.toString();
+        const message = String(err);
         assert.ok(
-          msg.includes("MessageTooLong") ||
-            msg.includes("Message too long") ||
-            msg.includes("6000") ||
+          message.includes("MessageTooLong") ||
+            message.includes("Message too long") ||
+            message.includes("6000") ||
             errorCode === "MessageTooLong",
           "Should return ChatError::MessageTooLong"
         );
-        console.log(`  ✅ Correctly rejected with error: ${errorCode || "MessageTooLong"}`);
+        console.log(
+          `  ✅ Correctly rejected oversized payload (${errorCode || "MessageTooLong"})`
+        );
       }
 
       assert.equal(threw, true, "Expected sendDm to fail with long message");
     });
 
-    it("rejects message far exceeding limit", async () => {
-      const [chatPda] = getChatPda(userB.publicKey, userC.publicKey);
-      const veryLongText = "x".repeat(1000);
+    it("rejects extremely large payloads", async () => {
+      const veryLargePayload = encodeMessage("x".repeat(1000));
       let threw = false;
 
       try {
-        await program.methods
-          .sendDm(veryLongText)
-          .accountsPartial({
-            sender: userB.publicKey,
-            receiver: userC.publicKey,
-            systemProgram: web3.SystemProgram.programId,
-          })
-          .signers([userB])
-          .rpc();
+        await sendEncryptedMessage(userB, userC.publicKey, veryLargePayload);
       } catch (err: any) {
         threw = true;
-        console.log(`  ✅ Correctly rejected 1000 char message`);
+        console.log("  ✅ Correctly rejected 1000 char message");
       }
 
       assert.equal(threw, true, "Expected to reject message with 1000 chars");
     });
 
-    it("requires sender signature", async () => {
-      const [chatPda] = getChatPda(userA.publicKey, userB.publicKey);
+    it("requires transaction signature from sender", async () => {
+      const payload = encodeMessage("Unsigned message");
+      const [participantA, participantB] = orderParticipants(
+        userA.publicKey,
+        userB.publicKey
+      );
       let threw = false;
 
       try {
-        // Try to send without userA signing
         await program.methods
-          .sendDm("Unsigned message")
+          .sendDm(Buffer.from(payload))
           .accountsPartial({
-            sender: userA.publicKey,
-            receiver: userB.publicKey,
+            authority: userA.publicKey,
+            participantA,
+            participantB,
             systemProgram: web3.SystemProgram.programId,
           })
-          .signers([]) // No signers!
+          .signers([])
           .rpc();
       } catch (err: any) {
         threw = true;
-        console.log(`  ✅ Correctly rejected unsigned transaction`);
+        console.log("  ✅ Correctly rejected unsigned transaction");
       }
 
       assert.equal(threw, true, "Should reject transaction without sender signature");
@@ -324,66 +378,52 @@ describe("Pigeon DM Chat", () => {
   });
 
   describe("Account State Verification", () => {
-    it("verifies timestamp ordering", async () => {
+    it("verifies timestamp monotonicity", async () => {
       const [chatPda] = getChatPda(userA.publicKey, userB.publicKey);
       const account = await program.account.chatAccount.fetch(chatPda);
-      
+
       for (let i = 1; i < account.messages.length; i++) {
         const prevTime = account.messages[i - 1].timestamp.toNumber();
         const currTime = account.messages[i].timestamp.toNumber();
         assert.ok(
-          currTime >= prevTime, 
+          currTime >= prevTime,
           `Message ${i} timestamp should be >= previous message`
         );
       }
-      
-      console.log(`  ✅ All ${account.messages.length} messages have valid timestamp ordering`);
+
+      console.log(
+        `  ✅ All ${account.messages.length} messages have valid timestamp ordering`
+      );
     });
 
-    it("verifies participants are immutable after initialization", async () => {
+    it("keeps participants immutable after initialization", async () => {
       const [chatPda] = getChatPda(userC.publicKey, userA.publicKey);
-      
-      // Fetch account twice, before and after sending another message
       const accountBefore = await program.account.chatAccount.fetch(chatPda);
-      const participantsBefore = accountBefore.participants;
-      
-      await program.methods
-        .sendDm("Another message")
-        .accountsPartial({
-          sender: userC.publicKey,
-          receiver: userA.publicKey,
-          systemProgram: web3.SystemProgram.programId,
-        })
-        .signers([userC])
-        .rpc();
-      
+      const participantsBefore = accountBefore.participants.map((p) => p.toBase58());
+
+      await sendPlaintextMessage(userC, userA.publicKey, "Another message");
+
       const accountAfter = await program.account.chatAccount.fetch(chatPda);
-      const participantsAfter = accountAfter.participants;
-      
-      assert.equal(
-        participantsBefore[0].toBase58(),
-        participantsAfter[0].toBase58(),
-        "First participant should remain unchanged"
-      );
-      assert.equal(
-        participantsBefore[1].toBase58(),
-        participantsAfter[1].toBase58(),
-        "Second participant should remain unchanged"
-      );
-      
-      console.log(`  ✅ Participants remain immutable`);
+      const participantsAfter = accountAfter.participants.map((p) => p.toBase58());
+
+      assert.deepEqual(participantsAfter, participantsBefore);
+
+      console.log("  ✅ Participants remain immutable");
     });
 
-    it("lists all messages with correct senders", async () => {
+    it("lists all stored messages with decoded senders", async () => {
       const [chatPda] = getChatPda(userA.publicKey, userB.publicKey);
       const account = await program.account.chatAccount.fetch(chatPda);
-      
+
       console.log(`  📝 Chat history (${account.messages.length} messages):`);
       account.messages.forEach((msg, idx) => {
-        const senderLabel = msg.sender.toBase58() === userA.publicKey.toBase58() ? "A" : "B";
-        console.log(`    [${idx}] ${senderLabel}: "${msg.text.substring(0, 50)}${msg.text.length > 50 ? '...' : ''}"`);
+        const senderLabel =
+          msg.sender.toBase58() === userA.publicKey.toBase58() ? "A" : "B";
+        const plaintext = decodeMessage(msg.encryptedPayload, msg.payloadLen);
+        const preview = plaintext.length > 50 ? `${plaintext.slice(0, 50)}...` : plaintext;
+        console.log(`    [${idx}] ${senderLabel}: "${preview}"`);
       });
-      
+
       assert.ok(account.messages.length > 0, "Should have messages in chat");
     });
   });
