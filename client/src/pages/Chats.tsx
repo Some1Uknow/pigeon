@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { useNavigate } from "react-router-dom";
@@ -127,10 +127,13 @@ export default function Chats() {
     );
   };
 
+  const coder = useMemo(() => new anchor.BorshAccountsCoder(idl as any), []);
+  const activeChatReceiver = activeChat?.receiver;
+  const walletKeyBase58 = wallet.publicKey?.toBase58();
+
   // Subscribe to account changes for real-time updates using WebSockets
   useEffect(() => {
-    if (!activeChat || !wallet.publicKey) {
-      // Cleanup subscription when no active chat
+    if (!wallet.publicKey || !activeChatReceiver) {
       if (accountSubscriptionRef.current !== null) {
         connection.removeAccountChangeListener(accountSubscriptionRef.current);
         accountSubscriptionRef.current = null;
@@ -138,108 +141,163 @@ export default function Chats() {
       return;
     }
 
+    let disposed = false;
+
     const setupWebSocket = async () => {
       try {
-        const receiver = new PublicKey(activeChat.receiver);
-        const [chatPda] = getChatPda(wallet.publicKey!, receiver);
-        
+        const receiverPk = new PublicKey(activeChatReceiver);
+        const [chatPda] = getChatPda(wallet.publicKey!, receiverPk);
+
         console.log("🔌 Setting up WebSocket subscription for chat:", chatPda.toBase58());
-        
-        // Subscribe to account changes
+
         const subscriptionId = connection.onAccountChange(
           chatPda,
           async (accountInfo) => {
+            if (disposed) return;
             console.log("📨 Real-time update received!");
-            
-            try {
-              // Parse the account data using Anchor's BorshAccountsCoder
-              const coder = new anchor.BorshAccountsCoder(idl as any);
-              const decoded = coder.decode("chatAccount", accountInfo.data);
-              
-              if (decoded && decoded.messages) {
-                // Decrypt the messages
-                const messages = await Promise.all(
-                  decoded.messages.map(async (msg: any) => {
-                    try {
-                      const senderAddr = msg.sender.toBase58();
-                      const isMyMessage = senderAddr === wallet.publicKey?.toBase58();
-                      const otherPartyAddr = isMyMessage ? activeChat.receiver : senderAddr;
-                      
-                      if (encryption.isInitialized) {
-                        const rawPayload = msg.encryptedPayload as
-                          | Uint8Array
-                          | number[]
-                          | undefined;
-                        const payloadLength = Number(msg.payloadLen ?? 0);
 
-                        if (!rawPayload || payloadLength < MIN_ENCRYPTED_LENGTH) {
-                          console.warn("⚠️ Invalid encrypted data in subscription payload", {
+            try {
+              if (!accountInfo || accountInfo.data?.length === 0) {
+                console.warn("⚠️ Skipping empty account update payload");
+                return;
+              }
+
+              const ownerMatchesProgram =
+                accountInfo.owner && accountInfo.owner.equals(PROGRAM_ID);
+              if (!ownerMatchesProgram) {
+                console.warn(
+                  "⚠️ Skipping update for account owned by",
+                  accountInfo.owner?.toBase58?.()
+                );
+                return;
+              }
+
+              if (accountInfo.data.length < 8) {
+                console.warn(
+                  "⚠️ Account data too small to decode, length:",
+                  accountInfo.data.length
+                );
+                return;
+              }
+
+              const decoded = coder.decode("ChatAccount", accountInfo.data);
+
+              if (!decoded || !decoded.messages) return;
+
+              const messages = await Promise.all(
+                decoded.messages.map(async (msg: any) => {
+                  try {
+                    const senderAddr = msg.sender.toBase58();
+                    const isMyMessage = senderAddr === walletKeyBase58;
+                    const otherPartyAddr = isMyMessage
+                      ? activeChatReceiver
+                      : senderAddr;
+
+                    if (encryption.isInitialized) {
+                      const rawPayload = msg.encryptedPayload as
+                        | Uint8Array
+                        | number[]
+                        | undefined;
+                      const payloadLength = Number(msg.payloadLen ?? 0);
+
+                      if (!rawPayload || payloadLength < 28) {
+                        console.warn(
+                          "⚠️ Invalid encrypted data in subscription payload",
+                          {
                             exists: !!rawPayload,
                             length: payloadLength,
                             payloadType: rawPayload?.constructor?.name,
                             sample: Array.from(rawPayload || []).slice(0, 10),
-                          });
-                          return {
-                            sender: msg.sender,
-                            text: "⚠️ [Message from incompatible version]",
-                            timestamp: msg.timestamp,
-                          };
-                        }
-
-                        const payloadBuffer = rawPayload instanceof Uint8Array
-                          ? rawPayload
-                          : new Uint8Array(rawPayload);
-                        const usableLength = Math.min(payloadBuffer.length, payloadLength);
-                        const encryptedData = payloadBuffer.slice(0, usableLength);
-                        const plaintext = await encryption.decryptMessage(encryptedData, otherPartyAddr);
-                        
+                          }
+                        );
                         return {
                           sender: msg.sender,
-                          text: plaintext,
-                          timestamp: msg.timestamp,
-                        };
-                      } else {
-                        return {
-                          sender: msg.sender,
-                          text: "🔒 [Encrypted - Sign message to decrypt]",
+                          text: "⚠️ [Message from incompatible version]",
                           timestamp: msg.timestamp,
                         };
                       }
-                    } catch (decryptErr) {
-                      console.error("Failed to decrypt message:", decryptErr);
+
+                      const payloadBuffer =
+                        rawPayload instanceof Uint8Array
+                          ? rawPayload
+                          : new Uint8Array(rawPayload);
+                      const usableLength = Math.min(
+                        payloadBuffer.length,
+                        payloadLength
+                      );
+                      const encryptedData = payloadBuffer.slice(0, usableLength);
+                      const plaintext = await encryption.decryptMessage(
+                        encryptedData,
+                        otherPartyAddr
+                      );
+
                       return {
                         sender: msg.sender,
-                        text: "⚠️ [Decryption failed]",
+                        text: plaintext,
                         timestamp: msg.timestamp,
                       };
                     }
-                  })
-                );
-                
-                // Update active chat with new messages
-                const updatedChat: Chat = { 
-                  ...activeChat, 
-                  messages 
+
+                    return {
+                      sender: msg.sender,
+                      text: "🔒 [Encrypted - Sign message to decrypt]",
+                      timestamp: msg.timestamp,
+                    };
+                  } catch (decryptErr) {
+                    console.error("Failed to decrypt message:", decryptErr);
+                    return {
+                      sender: msg.sender,
+                      text: "⚠️ [Decryption failed]",
+                      timestamp: msg.timestamp,
+                    };
+                  }
+                })
+              );
+
+              setActiveChat((prev) => {
+                if (!prev || prev.receiver !== activeChatReceiver) {
+                  return prev;
+                }
+                return {
+                  ...prev,
+                  messages,
                 };
-                setActiveChat(updatedChat);
-                
-                // Update in chats list
-                setChats((prev) => {
-                  return prev.map((c) => 
-                    c.receiver === activeChat.receiver ? updatedChat : c
-                  );
+              });
+
+              setChats((prev) => {
+                let found = false;
+                const next = prev.map((chat) => {
+                  if (chat.receiver === activeChatReceiver) {
+                    found = true;
+                    return {
+                      ...chat,
+                      messages,
+                    };
+                  }
+                  return chat;
                 });
-              }
+
+                if (!found) {
+                  next.push({
+                    receiver: activeChatReceiver,
+                    messages,
+                    isSentByMe:
+                      walletKeyBase58 !== undefined &&
+                      walletKeyBase58 === activeChatReceiver,
+                  });
+                }
+
+                return next;
+              });
             } catch (err) {
               console.error("Error processing WebSocket update:", err);
             }
           },
           "confirmed"
         );
-        
+
         accountSubscriptionRef.current = subscriptionId;
         console.log("✅ WebSocket subscription active (ID:", subscriptionId, ")");
-        
       } catch (err) {
         console.error("Error setting up WebSocket:", err);
       }
@@ -248,13 +306,21 @@ export default function Chats() {
     void setupWebSocket();
 
     return () => {
+      disposed = true;
       if (accountSubscriptionRef.current !== null) {
         connection.removeAccountChangeListener(accountSubscriptionRef.current);
         accountSubscriptionRef.current = null;
         console.log("🔌 WebSocket subscription cleaned up");
       }
     };
-  }, [activeChat, wallet.publicKey, connection, encryption]);
+  }, [
+    wallet.publicKey,
+    walletKeyBase58,
+    activeChatReceiver,
+    connection,
+    encryption,
+    coder,
+  ]);
 
   // Discover existing chats on devnet where the connected wallet is a participant
   const discoverUserChats = useCallback(async () => {
