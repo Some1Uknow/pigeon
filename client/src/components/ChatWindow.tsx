@@ -67,7 +67,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             <img src={pigeon} alt="Pigeon" className="w-10 h-10 object-contain" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-white break-words">{activeChat ? activeChat.receiver : "No chat selected"}</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-semibold text-white break-words">{activeChat ? activeChat.receiver : "No chat selected"}</h2>
+              {activeChat && (
+                <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-[10px] font-semibold rounded-full border border-green-500/30 flex items-center gap-1">
+                  🔒 E2EE
+                </span>
+              )}
+            </div>
             <p className="text-xs text-green-400 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
               Online

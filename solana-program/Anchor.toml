@@ -6,7 +6,7 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-pigeon_program = "8S5v7DvbagdFYZzDL9RGnmqHZ12CJynxkW3Wq374tHgj"
+pigeon_program = "9v4KnCjYJSTe7Cgt2JdNnDkkUJFADZrAkUPapfrh8N4N"
 
 [registry]
 url = "https://api.apr.dev"

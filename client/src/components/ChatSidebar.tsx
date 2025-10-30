@@ -16,7 +16,7 @@ interface Chat {
 interface ChatSidebarProps {
   chats: Chat[];
   activeChat: Chat | null;
-  onOpenChat: (receiver: string, isSentByMe: boolean) => void;
+  onOpenChat: (receiver: string) => void;
   onNewChat: () => void;
 }
 
@@ -70,7 +70,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
               return (
                 <button
                   key={chat.receiver}
-                  onClick={() => onOpenChat(chat.receiver, chat.isSentByMe)}
+                  onClick={() => onOpenChat(chat.receiver)}
                   className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-200 w-full text-left relative ${
                     isActive ? "bg-primary/20 border border-primary/50" : "hover:bg-white/5"
                   }`}

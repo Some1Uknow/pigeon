@@ -1,5 +1,5 @@
 {
-  "address": "8S5v7DvbagdFYZzDL9RGnmqHZ12CJynxkW3Wq374tHgj",
+  "address": "9v4KnCjYJSTe7Cgt2JdNnDkkUJFADZrAkUPapfrh8N4N",
   "metadata": {
     "name": "pigeon_program",
     "version": "0.1.0",
@@ -36,22 +36,25 @@
               },
               {
                 "kind": "account",
-                "path": "sender"
+                "path": "participant_a"
               },
               {
                 "kind": "account",
-                "path": "receiver"
+                "path": "participant_b"
               }
             ]
           }
         },
         {
-          "name": "sender",
+          "name": "authority",
           "writable": true,
           "signer": true
         },
         {
-          "name": "receiver"
+          "name": "participant_a"
+        },
+        {
+          "name": "participant_b"
         },
         {
           "name": "system_program",
@@ -60,8 +63,8 @@
       ],
       "args": [
         {
-          "name": "text",
-          "type": "string"
+          "name": "encrypted_text",
+          "type": "bytes"
         }
       ]
     }
@@ -86,6 +89,26 @@
       "code": 6000,
       "name": "MessageTooLong",
       "msg": "Message too long!"
+    },
+    {
+      "code": 6001,
+      "name": "EmptyMessage",
+      "msg": "Message cannot be empty!"
+    },
+    {
+      "code": 6002,
+      "name": "ChatFull",
+      "msg": "Chat is full! Maximum 10 messages reached."
+    },
+    {
+      "code": 6003,
+      "name": "InvalidParticipants",
+      "msg": "Chat participants do not match expected addresses."
+    },
+    {
+      "code": 6004,
+      "name": "UnauthorizedSender",
+      "msg": "Only chat participants can send messages."
     }
   ],
   "types": [
@@ -126,8 +149,8 @@
             "type": "pubkey"
           },
           {
-            "name": "text",
-            "type": "string"
+            "name": "encrypted_text",
+            "type": "bytes"
           },
           {
             "name": "timestamp",
