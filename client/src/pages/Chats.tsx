@@ -30,7 +30,6 @@ export default function Chats() {
   const [loading, setLoading] = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
 
-  // Setup WebSocket subscription for real-time updates
   useWebSocketChat({
     activeChat,
     connection,
@@ -42,7 +41,6 @@ export default function Chats() {
     if (!wallet.connected) navigate("/");
   }, [wallet.connected, navigate]);
 
-  // Fetch wallet balance
   useEffect(() => {
     const fetchBalance = async () => {
       if (wallet.publicKey) {
@@ -59,12 +57,10 @@ export default function Chats() {
     };
 
     fetchBalance();
-    // Refresh balance every 10 seconds
     const interval = setInterval(fetchBalance, 10000);
     return () => clearInterval(interval);
   }, [wallet.publicKey, connection]);
 
-  // Auto-dismiss error after 5 seconds
   useEffect(() => {
     if (error) {
       const timer = setTimeout(() => setError(null), 5000);
@@ -72,7 +68,6 @@ export default function Chats() {
     }
   }, [error]);
 
-  // Initialize encryption when wallet connects
   useEffect(() => {
     const initEncryption = async () => {
       if (wallet.connected && encryption.isEncryptionReady && !encryption.isInitialized) {
@@ -89,7 +84,6 @@ export default function Chats() {
     void initEncryption();
   }, [wallet.connected, encryption]);
 
-  // On wallet connect, discover existing chats so they persist across refreshes
   useEffect(() => {
     if (wallet.connected) {
       void discoverUserChats().then(setChats);
@@ -202,7 +196,6 @@ export default function Chats() {
       });
         
       setShowModal(false);
-      // Small delay to ensure transaction is processed
       await new Promise(resolve => setTimeout(resolve, 1000));
       await openChat(receiverAddress);
     } catch (e: any) {
@@ -223,7 +216,7 @@ export default function Chats() {
     <div className="flex min-h-screen bg-linear-to-br from-[#050505] via-[#0a0a0a] to-[#141414] text-gray-100">
       <div
         style={{ width: sidebarWidth }}
-        className={`flex-shrink-0 ${isResizing ? '' : 'transition-[width] duration-150 ease-out'}`}
+        className={`shrink-0 ${isResizing ? '' : 'transition-[width] duration-150 ease-out'}`}
       >
         <ChatSidebar
           chats={chats}
@@ -239,7 +232,7 @@ export default function Chats() {
         className="w-3 cursor-col-resize flex items-center justify-center z-10"
         title="Drag to resize sidebar"
       >
-        <div className="w-[2px] h-10 bg-white/10 rounded" />
+        <div className="w-0.5 h-10 bg-white/10 rounded" />
       </div>
 
       <ChatWindow
