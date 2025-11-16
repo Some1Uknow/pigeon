@@ -15,6 +15,8 @@ Proposals in the EU to mandate scanning of private messages (“Chat Control,”
 
 Pigeon takes the opposite stance: keep content encrypted at the edges, minimize metadata, and remove the need for any trusted server in the middle. Your wallet is your identity, your encryption happens locally, and the blockchain only ever sees encrypted blobs.
 
+### Technical Demo - https://www.loom.com/share/10ce1dad6c1b4996983ce68bf2b38875
+
 
 ## What you can do with Pigeon today
 
