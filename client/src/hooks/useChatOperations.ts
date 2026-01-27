@@ -23,14 +23,14 @@ export const useChatOperations = () => {
       if (!wallet.publicKey) return [];
       const program = getProgram();
       const receiver = new PublicKey(receiverAddr);
-      
+
       const [chatPda] = getChatPda(wallet.publicKey, receiver);
-      
+
       const acc = await (program.account as any).chatAccount.fetchNullable(chatPda);
       if (!acc || !acc.messages) {
         return [];
       }
-      
+
       // Decrypt messages
       const messages = await Promise.all(
         acc.messages.map(async (msg: any) => {
@@ -38,10 +38,10 @@ export const useChatOperations = () => {
             // Determine the sender address for decryption
             const senderAddr = msg.sender.toBase58();
             const isMyMessage = senderAddr === wallet.publicKey?.toBase58();
-            
+
             // For decryption, we need the OTHER party's address
             const otherPartyAddr = isMyMessage ? receiverAddr : senderAddr;
-            
+
             // Decrypt the message
             if (encryption.isInitialized) {
               const rawPayload = msg.encryptedPayload as
@@ -51,6 +51,7 @@ export const useChatOperations = () => {
               const payloadLength = Number(msg.payloadLen ?? 0);
 
               if (!rawPayload || payloadLength < MIN_ENCRYPTED_LENGTH) {
+                // Only show warning for truly invalid payloads, not loading states
                 console.warn("⚠️ Invalid encrypted data:", {
                   exists: !!rawPayload,
                   length: payloadLength,
@@ -59,18 +60,18 @@ export const useChatOperations = () => {
                 });
                 return {
                   sender: msg.sender,
-                  text: "⚠️ [Message from incompatible version - please start a new chat]",
+                  text: "⏳ Loading...",
                   timestamp: msg.timestamp,
                 };
               }
-              
+
               const payloadBuffer = rawPayload instanceof Uint8Array
                 ? rawPayload
                 : new Uint8Array(rawPayload);
               const usableLength = Math.min(payloadBuffer.length, payloadLength);
               const encryptedData = payloadBuffer.slice(0, usableLength);
               const plaintext = await encryption.decryptMessage(encryptedData, otherPartyAddr);
-              
+
               return {
                 sender: msg.sender,
                 text: plaintext,
@@ -94,7 +95,7 @@ export const useChatOperations = () => {
           }
         })
       );
-      
+
       return messages;
     } catch (err) {
       console.error("Error fetching chat:", err);

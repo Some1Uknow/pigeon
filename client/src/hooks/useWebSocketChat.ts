@@ -117,7 +117,7 @@ export const useWebSocketChat = ({
                         );
                         return {
                           sender: msg.sender,
-                          text: "⚠️ [Message from incompatible version]",
+                          text: "⏳ Loading...",
                           timestamp: msg.timestamp,
                         };
                       }
@@ -266,7 +266,7 @@ export const useWebSocketChat = ({
               if (!rawPayload || payloadLength < MIN_ENCRYPTED_LENGTH) {
                 return {
                   sender: msg.sender,
-                  text: "⚠️ [Message from incompatible version]",
+                  text: "⏳ Loading...",
                   timestamp: msg.timestamp,
                 };
               }

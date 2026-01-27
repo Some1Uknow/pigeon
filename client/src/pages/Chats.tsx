@@ -16,10 +16,10 @@ export default function Chats() {
   const { connection } = useConnection();
   const navigate = useNavigate();
   const encryption = useEncryption();
-  
+
   const { fetchChat, findExistingChat, discoverUserChats } = useChatOperations();
   const { sendMessage: sendMessageOp, startNewChat: startNewChatOp } = useMessageOperations();
-  
+
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChat, setActiveChat] = useState<Chat | null>(null);
   const [sidebarWidth, setSidebarWidth] = useState<number>(280);
@@ -80,7 +80,7 @@ export default function Chats() {
         }
       }
     };
-    
+
     void initEncryption();
   }, [wallet.connected, encryption]);
 
@@ -124,7 +124,7 @@ export default function Chats() {
         : false;
       const chat: Chat = { receiver: receiverAddr, messages: msgs, isSentByMe: meFirst };
       setActiveChat(chat);
-      
+
       // Update chats list
       setChats((prev) => {
         const existing = prev.find((c) => c.receiver === receiverAddr);
@@ -149,7 +149,7 @@ export default function Chats() {
         activeChat,
         message: input.trim(),
       });
-        
+
       setInput("");
       // Small delay to ensure transaction is processed
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -194,9 +194,14 @@ export default function Chats() {
         receiverAddress: address,
         initialMessage: message,
       });
-        
+
       setShowModal(false);
       await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Refresh the chats list so sidebar shows the new chat
+      const updatedChats = await discoverUserChats();
+      setChats(updatedChats);
+
       await openChat(receiverAddress);
     } catch (e: any) {
       console.error("Start chat error:", e);
