@@ -149,3 +149,4 @@ target/
 convert.js
 /package.json
 node_modules
+.blackboxcli/

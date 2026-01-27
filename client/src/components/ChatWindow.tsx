@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import pigeon from "../assets/pigeon.png";
+import { TipModal } from "./TipModal";
 
 interface Message {
   sender: any; // PublicKey
@@ -49,6 +50,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   balance,
   connection,
 }) => {
+  const [tipModalOpen, setTipModalOpen] = useState(false);
+
   const truncateAddress = (addr: string | undefined) => {
     if (!addr) return "-";
     if (addr.length <= 12) return addr;
@@ -61,7 +64,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   return (
     <main className="flex-1 flex flex-col">
       {/* Chat Header */}
-  <header className="flex items-center justify-between gap-2 px-6 py-3 border-b border-white/5 glassmorphic shrink-0">
+      <header className="flex items-center justify-between gap-2 px-6 py-3 border-b border-white/5 glassmorphic shrink-0">
         <div className="flex items-center gap-4">
           <div className="w-10 h-10">
             <img src={pigeon} alt="Pigeon" className="w-10 h-10 object-contain" />
@@ -70,9 +73,17 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-semibold text-white break-words">{activeChat ? activeChat.receiver : "No chat selected"}</h2>
               {activeChat && (
-                <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-[10px] font-semibold rounded-full border border-green-500/30 flex items-center gap-1">
-                  🔒 E2EE
-                </span>
+                <>
+                  <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-[10px] font-semibold rounded-full border border-green-500/30 flex items-center gap-1">
+                    🔒 E2EE
+                  </span>
+                  <button
+                    onClick={() => setTipModalOpen(true)}
+                    className="px-2 py-0.5 bg-purple-500/20 text-purple-400 text-[10px] font-semibold rounded-full border border-purple-500/30 flex items-center gap-1 hover:bg-purple-500/30 transition-colors"
+                  >
+                    💰 Tip
+                  </button>
+                </>
               )}
             </div>
             <p className="text-xs text-green-400 flex items-center gap-1.5">
@@ -110,23 +121,23 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         </div>
 
         <div className="space-y-6 relative z-10">
-        {activeChat ? (
-          activeChat.messages.map((m, i) => {
-            const isMyMessage = m.sender?.toBase58 && wallet.publicKey?.toBase58 && m.sender.toBase58() === wallet.publicKey.toBase58();
-            return (
-              <div className={`flex items-end gap-3 ${isMyMessage ? "justify-end" : "justify-start"}`} key={i}>
-                <div className={`flex flex-1 flex-col gap-1 ${isMyMessage ? 'items-end text-right' : 'items-start text-left'}`}>
-                  <p className="text-[#9d9db9] text-[13px] font-normal">{!isMyMessage ? `${truncateAddress(activeChat.receiver)} · ${new Date((m.timestamp?.toNumber?.() || Date.now()/1000) * 1000).toLocaleTimeString()}` : `You · ${new Date((m.timestamp?.toNumber?.() || Date.now()/1000) * 1000).toLocaleTimeString()}`}</p>
-                  <p className={isMyMessage ? `${sentBubble} ml-4` : `${recvBubble} mr-4`}>
-                    {m.text}
-                  </p>
+          {activeChat ? (
+            activeChat.messages.map((m, i) => {
+              const isMyMessage = m.sender?.toBase58 && wallet.publicKey?.toBase58 && m.sender.toBase58() === wallet.publicKey.toBase58();
+              return (
+                <div className={`flex items-end gap-3 ${isMyMessage ? "justify-end" : "justify-start"}`} key={i}>
+                  <div className={`flex flex-1 flex-col gap-1 ${isMyMessage ? 'items-end text-right' : 'items-start text-left'}`}>
+                    <p className="text-[#9d9db9] text-[13px] font-normal">{!isMyMessage ? `${truncateAddress(activeChat.receiver)} · ${new Date((m.timestamp?.toNumber?.() || Date.now() / 1000) * 1000).toLocaleTimeString()}` : `You · ${new Date((m.timestamp?.toNumber?.() || Date.now() / 1000) * 1000).toLocaleTimeString()}`}</p>
+                    <p className={isMyMessage ? `${sentBubble} ml-4` : `${recvBubble} mr-4`}>
+                      {m.text}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            );
-          })
-        ) : (
-          <p className="text-gray-500 text-center mt-10 text-sm">Choose a chat or start a new one</p>
-        )}
+              );
+            })
+          ) : (
+            <p className="text-gray-500 text-center mt-10 text-sm">Choose a chat or start a new one</p>
+          )}
         </div>
       </div>
 
@@ -174,6 +185,15 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           </div>
           <div className="text-xs text-gray-500 mt-2">{input.length}/{MAX_MESSAGE_LENGTH} characters</div>
         </div>
+      )}
+
+      {/* Tip Modal */}
+      {activeChat && (
+        <TipModal
+          isOpen={tipModalOpen}
+          onClose={() => setTipModalOpen(false)}
+          recipientAddress={activeChat.receiver}
+        />
       )}
     </main>
   );
