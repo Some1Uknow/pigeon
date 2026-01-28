@@ -25,18 +25,14 @@ interface StartChatResult {
   receiverAddress: string;
 }
 
-/**
- * Hook for sending messages and starting new chats.
- * Handles encryption, transaction building, and retry logic.
- */
+// Hook for sending messages and starting new chats.
+// Handles encryption, transaction building, and retry logic.
 export const useMessageOperations = () => {
   const wallet = useWallet();
   const { getProgram, connection } = useProgram();
   const encryption = useEncryption();
 
-  /**
-   * Builds the encrypted message instruction for the chat program.
-   */
+  // Builds the encrypted message instruction for the chat program.
   const buildMessageInstruction = useCallback(
     async (message: string, receiverPk: PublicKey) => {
       if (!wallet.publicKey) throw new Error("Wallet not connected");
@@ -66,9 +62,7 @@ export const useMessageOperations = () => {
     [wallet.publicKey, getProgram, encryption]
   );
 
-  /**
-   * Send a message to an existing chat.
-   */
+  // Send a message to an existing chat.
   const sendMessage = useCallback(
     async ({ activeChat, message }: SendMessageParams): Promise<string> => {
       if (!activeChat || !message.trim()) {

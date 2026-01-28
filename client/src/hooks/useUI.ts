@@ -3,9 +3,7 @@ import type { Connection } from "@solana/web3.js";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import type { WalletContextState } from "@solana/wallet-adapter-react";
 
-/**
- * Hook for fetching and auto-refreshing wallet SOL balance.
- */
+// Hook for fetching and auto-refreshing wallet SOL balance.
 export function useBalance(
     wallet: WalletContextState,
     connection: Connection,
@@ -42,9 +40,7 @@ interface SidebarResizeState {
     startResizing: (e: React.MouseEvent) => void;
 }
 
-/**
- * Hook for managing resizable sidebar state.
- */
+// Hook for managing resizable sidebar state.
 export function useSidebarResize(
     initialWidth = 280,
     minWidth = 160,
@@ -81,9 +77,7 @@ export function useSidebarResize(
     return { width, isResizing, startResizing };
 }
 
-/**
- * Hook for auto-clearing error messages after a timeout.
- */
+// Hook for auto-clearing error messages after a timeout.
 export function useAutoError(timeout = 5000) {
     const [error, setError] = useState<string | null>(null);
 

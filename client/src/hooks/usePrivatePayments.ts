@@ -15,26 +15,19 @@ export interface TipResult {
     recipient: string;
 }
 
-/** Minimum tip amount in lamports (~0.000005 SOL) */
+// Minimum tip amount in lamports (~0.000005 SOL)
 const MIN_TIP_LAMPORTS = 5000;
 
-/**
- * Hook for sending SOL tips to chat participants.
- *
- * Currently uses standard Solana transfers.
- * Will upgrade to MagicBlock PER private transfers when available.
- */
+// Hook for sending SOL tips to chat participants.
+// Currently uses standard Solana transfers.
+// Will upgrade to MagicBlock PER private transfers.
+
 export const usePrivatePayments = () => {
     const wallet = useWallet();
     const { connection } = useConnection();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    /**
-     * Send a SOL tip to a recipient.
-     * @param recipientAddress - Recipient wallet address
-     * @param amountLamports - Amount in lamports
-     */
     const sendTip = useCallback(
         async (
             recipientAddress: string,
@@ -121,9 +114,6 @@ export const usePrivatePayments = () => {
         [wallet, connection]
     );
 
-    /**
-     * Get wallet SOL balance.
-     */
     const getBalance = useCallback(async (): Promise<number> => {
         if (!wallet.publicKey) {
             throw new Error("Wallet not connected");
@@ -131,9 +121,7 @@ export const usePrivatePayments = () => {
         return connection.getBalance(wallet.publicKey);
     }, [wallet.publicKey, connection]);
 
-    /**
-     * Check if private transfers are available.
-     */
+    // Check if private transfers are available.
     const checkPrivateAvailability = useCallback((): boolean => {
         return isPrivateTransfersAvailable();
     }, []);

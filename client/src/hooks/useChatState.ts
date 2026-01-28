@@ -17,10 +17,8 @@ interface ChatState {
     setError: (error: string | null) => void;
 }
 
-/**
- * Core hook managing all chat state and operations.
- * Consolidates chat list, active chat, and message sending.
- */
+// Core hook managing all chat state and operations.
+// Consolidates chat list, active chat, and message sending.
 export function useChatState(
     setError: (error: string | null) => void
 ): ChatState {
@@ -108,7 +106,6 @@ export function useChatState(
             setLoading(true);
             try {
                 await sendMessageOp({ activeChat, message: message.trim() });
-                // Refresh after short delay for tx processing
                 await new Promise((r) => setTimeout(r, 1000));
                 await openChat(activeChat.receiver);
             } catch (e: unknown) {

@@ -3,9 +3,7 @@ import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import * as anchor from "@coral-xyz/anchor";
 import idl from "../solana_program.json";
 
-/**
- * Custom hook to get the Anchor program instance
- */
+// Custom hook to get the Anchor program instance
 export const useProgram = () => {
   const wallet = useWallet();
   const { connection } = useConnection();

@@ -19,9 +19,7 @@ interface UseWebSocketChatParams {
   setChats: Dispatch<SetStateAction<Chat[]>>;
 }
 
-/**
- * Custom hook to manage WebSocket subscriptions + polling fallback for real-time chat updates
- */
+// Custom hook to manage WebSocket subscriptions + polling fallback for real-time chat updates
 export const useWebSocketChat = ({
   activeChat,
   connection,
