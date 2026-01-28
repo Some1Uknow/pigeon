@@ -10,15 +10,10 @@ import {
   useWebSocketChat,
 } from "../hooks";
 
-/**
- * Main chat page component.
- * Uses custom hooks for clean state management.
- */
 export default function Chats() {
   const wallet = useWallet();
   const { connection } = useConnection();
 
-  // UI State
   const [error, setError] = useAutoError();
   const [input, setInput] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -36,7 +31,6 @@ export default function Chats() {
     setChats: () => { },
   });
 
-  // Handlers
   const handleSendMessage = async () => {
     await chat.sendMessage(input);
     setInput("");
@@ -49,7 +43,6 @@ export default function Chats() {
 
   return (
     <div className="flex min-h-screen bg-linear-to-br from-[#050505] via-[#0a0a0a] to-[#141414] text-gray-100">
-      {/* Sidebar */}
       <div
         style={{ width: sidebar.width }}
         className={`shrink-0 ${sidebar.isResizing ? "" : "transition-[width] duration-150 ease-out"}`}
@@ -62,7 +55,6 @@ export default function Chats() {
         />
       </div>
 
-      {/* Resize Handle */}
       <div
         onMouseDown={sidebar.startResizing}
         className="w-3 cursor-col-resize flex items-center justify-center z-10"
@@ -71,7 +63,6 @@ export default function Chats() {
         <div className="w-0.5 h-10 bg-white/10 rounded" />
       </div>
 
-      {/* Main Chat */}
       <ChatWindow
         activeChat={chat.activeChat}
         wallet={wallet}
@@ -83,7 +74,6 @@ export default function Chats() {
         connection={connection}
       />
 
-      {/* Modal */}
       <NewChatModal
         showModal={showModal}
         onClose={() => setShowModal(false)}
@@ -91,7 +81,6 @@ export default function Chats() {
         loading={chat.loading}
       />
 
-      {/* Error Toast */}
       {error && (
         <div className="fixed bottom-4 right-4 bg-red-600/90 text-white px-4 py-2 rounded-lg shadow">
           {error}

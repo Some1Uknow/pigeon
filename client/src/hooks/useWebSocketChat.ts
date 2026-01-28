@@ -31,9 +31,7 @@ interface DecryptionContext {
   encryption: ReturnType<typeof useEncryption>;
 }
 
-/**
- * Decrypts a single on-chain message
- */
+// Decrypts a single on-chain message
 const decryptMessage = async (
   msg: RawMessage,
   ctx: DecryptionContext
@@ -85,9 +83,7 @@ const decryptMessage = async (
   }
 };
 
-/**
- * Decrypts all messages from an on-chain account
- */
+// Decrypts all messages from an on-chain account
 const decryptAllMessages = async (
   rawMessages: RawMessage[],
   ctx: DecryptionContext
@@ -95,9 +91,8 @@ const decryptAllMessages = async (
   return Promise.all(rawMessages.map((msg) => decryptMessage(msg, ctx)));
 };
 
-/**
- * Custom hook to manage WebSocket subscriptions + polling fallback for real-time chat updates
- */
+// Custom hook to manage WebSocket subscriptions + polling fallback for real-time chat updates
+
 export const useWebSocketChat = ({
   activeChat,
   connection,

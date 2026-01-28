@@ -7,15 +7,12 @@ import { useProgram } from "./useProgram";
 import { useEncryption } from "../contexts/EncryptionContext";
 import type { Chat, Message } from "../types/chat";
 
-
-//  hook for chat-related operations
- 
+// hook for chat-related operations
 export const useChatOperations = () => {
   const wallet = useWallet();
   const { getProgram } = useProgram();
   const encryption = useEncryption();
 
-  // Fetch and decrypt chat messages between wallet and receiver
   const fetchChat = useCallback(async (receiverAddr: string): Promise<Message[]> => {
     try {
       if (!wallet.publicKey) return [];
@@ -33,14 +30,11 @@ export const useChatOperations = () => {
       const messages = await Promise.all(
         acc.messages.map(async (msg: any) => {
           try {
-            // Determine the sender address for decryption
             const senderAddr = msg.sender.toBase58();
             const isMyMessage = senderAddr === wallet.publicKey?.toBase58();
 
-            // For decryption, we need the OTHER party's address
             const otherPartyAddr = isMyMessage ? receiverAddr : senderAddr;
 
-            // Decrypt the message
             if (encryption.isInitialized) {
               const rawPayload = msg.encryptedPayload as
                 | Uint8Array
@@ -49,7 +43,6 @@ export const useChatOperations = () => {
               const payloadLength = Number(msg.payloadLen ?? 0);
 
               if (!rawPayload || payloadLength < MIN_ENCRYPTED_LENGTH) {
-                // Only show warning for truly invalid payloads, not loading states
                 console.warn("⚠️ Invalid encrypted data:", {
                   exists: !!rawPayload,
                   length: payloadLength,
@@ -76,7 +69,6 @@ export const useChatOperations = () => {
                 timestamp: msg.timestamp,
               };
             } else {
-              // Encryption not initialized - show encrypted indicator
               return {
                 sender: msg.sender,
                 text: "🔒 [Encrypted - Sign message to decrypt] (reload and approve wallet signature)",
@@ -101,7 +93,6 @@ export const useChatOperations = () => {
     }
   }, [wallet.publicKey, getProgram, encryption]);
 
-  // Try to find existing chat in both directions
   const findExistingChat = useCallback(async (receiverAddr: string): Promise<Chat | null> => {
     try {
       if (!wallet.publicKey) return null;
@@ -126,7 +117,6 @@ export const useChatOperations = () => {
     }
   }, [wallet.publicKey, getProgram]);
 
-  // Discover existing chats on devnet where the connected wallet is a participant
   const discoverUserChats = useCallback(async (): Promise<Chat[]> => {
     if (!wallet.publicKey) return [];
     try {
