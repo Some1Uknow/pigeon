@@ -10,7 +10,7 @@ import { useEncryption } from "../contexts/EncryptionContext";
 import idl from "../solana_program.json";
 
 // Polling interval in milliseconds
-const POLLING_INTERVAL_MS = 3000;
+const POLLING_INTERVAL_MS = 2000;
 
 interface UseWebSocketChatParams {
   activeChat: Chat | null;
@@ -227,7 +227,6 @@ export const useWebSocketChat = ({
     setChats,
   ]);
 
-  // Polling fallback - runs every 3 seconds to catch any missed WebSocket updates
   useEffect(() => {
     if (!wallet.publicKey || !activeChatReceiver || !encryption.isInitialized) {
       if (pollingIntervalRef.current) {
