@@ -1,46 +1,33 @@
-import React, { useState } from 'react';
+import { useState } from "react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import type { WalletContextState } from "@solana/wallet-adapter-react";
+import type { Connection } from "@solana/web3.js";
+
 import pigeon from "../assets/pigeon.png";
 import { TipModal } from "./TipModal";
-
-interface Message {
-  sender: any; // PublicKey
-  text: string;
-  timestamp: any; // BN
-}
-
-interface Chat {
-  receiver: string;
-  messages: Message[];
-  isSentByMe: boolean;
-}
+import { truncateAddress, getNetworkLabel } from "../utils/format";
+import { MAX_MESSAGE_LENGTH } from "../utils/chatConstants";
+import type { Chat } from "../types/chat";
 
 interface ChatWindowProps {
   activeChat: Chat | null;
-  wallet: any;
+  wallet: WalletContextState;
   input: string;
   onInputChange: (value: string) => void;
   onSendMessage: () => void;
   loading: boolean;
   balance: number | null;
-  connection: any;
+  connection: Connection;
 }
 
-const MAX_MESSAGE_LENGTH = 280;
+/** Message bubble styles */
+const BUBBLE_STYLES = {
+  sent: "text-white max-w-lg rounded-xl px-4 py-3 rounded-br-sm bg-gradient-to-r from-[#4f46e5] to-[#06b6d4]",
+  received:
+    "text-white max-w-lg rounded-xl px-4 py-3 rounded-bl-sm bg-[#0f1724] border border-white/5",
+} as const;
 
-const getNetworkLabel = (endpoint: string) => {
-  try {
-    const url = new URL(endpoint);
-    if (url.hostname === "127.0.0.1" || url.hostname === "localhost") return "Localnet";
-    if (url.hostname.includes("devnet")) return "Devnet";
-    if (url.hostname.includes("mainnet")) return "Mainnet";
-    return url.hostname;
-  } catch {
-    return endpoint;
-  }
-};
-
-const ChatWindow: React.FC<ChatWindowProps> = ({
+const ChatWindow = ({
   activeChat,
   wallet,
   input,
@@ -49,17 +36,16 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   loading,
   balance,
   connection,
-}) => {
+}: ChatWindowProps) => {
   const [tipModalOpen, setTipModalOpen] = useState(false);
 
-  const truncateAddress = (addr: string | undefined) => {
-    if (!addr) return "-";
-    if (addr.length <= 12) return addr;
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  const formatTimestamp = (timestamp: { toNumber?: () => number } | number) => {
+    const seconds =
+      typeof timestamp === "number"
+        ? timestamp
+        : (timestamp?.toNumber?.() ?? Date.now() / 1000);
+    return new Date(seconds * 1000).toLocaleTimeString();
   };
-
-  const sentBubble = "text-white max-w-lg rounded-xl px-4 py-3 rounded-br-sm bg-gradient-to-r from-[#4f46e5] to-[#06b6d4]";
-  const recvBubble = "text-white max-w-lg rounded-xl px-4 py-3 rounded-bl-sm bg-[#0f1724] border border-white/5";
 
   return (
     <main className="flex-1 flex flex-col">
@@ -67,11 +53,17 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       <header className="flex items-center justify-between gap-2 px-6 py-3 border-b border-white/5 glassmorphic shrink-0">
         <div className="flex items-center gap-4">
           <div className="w-10 h-10">
-            <img src={pigeon} alt="Pigeon" className="w-10 h-10 object-contain" />
+            <img
+              src={pigeon}
+              alt="Pigeon"
+              className="w-10 h-10 object-contain"
+            />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-semibold text-white break-words">{activeChat ? activeChat.receiver : "No chat selected"}</h2>
+              <h2 className="text-lg font-semibold text-white break-words">
+                {activeChat ? activeChat.receiver : "No chat selected"}
+              </h2>
               {activeChat && (
                 <>
                   <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-[10px] font-semibold rounded-full border border-green-500/30 flex items-center gap-1">
@@ -97,7 +89,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           {/* Balance Display */}
           {wallet.publicKey && (
             <div className="text-right mr-2">
-              <div className="text-xs text-gray-400">{getNetworkLabel((connection as any).rpcEndpoint || "")}</div>
+              <div className="text-xs text-gray-400">
+                {getNetworkLabel(
+                  (connection as { rpcEndpoint?: string }).rpcEndpoint ?? ""
+                )}
+              </div>
               <div className="font-semibold text-sm">
                 {balance !== null ? (
                   <span className="text-blue-400">◎ {balance.toFixed(4)}</span>
@@ -123,12 +119,34 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         <div className="space-y-6 relative z-10">
           {activeChat ? (
             activeChat.messages.map((m, i) => {
-              const isMyMessage = m.sender?.toBase58 && wallet.publicKey?.toBase58 && m.sender.toBase58() === wallet.publicKey.toBase58();
+              const isMyMessage =
+                m.sender?.toBase58 &&
+                wallet.publicKey?.toBase58 &&
+                m.sender.toBase58() === wallet.publicKey.toBase58();
+
+              const timeStr = formatTimestamp(m.timestamp);
+              const senderLabel = isMyMessage
+                ? `You · ${timeStr}`
+                : `${truncateAddress(activeChat.receiver)} · ${timeStr}`;
+
               return (
-                <div className={`flex items-end gap-3 ${isMyMessage ? "justify-end" : "justify-start"}`} key={i}>
-                  <div className={`flex flex-1 flex-col gap-1 ${isMyMessage ? 'items-end text-right' : 'items-start text-left'}`}>
-                    <p className="text-[#9d9db9] text-[13px] font-normal">{!isMyMessage ? `${truncateAddress(activeChat.receiver)} · ${new Date((m.timestamp?.toNumber?.() || Date.now() / 1000) * 1000).toLocaleTimeString()}` : `You · ${new Date((m.timestamp?.toNumber?.() || Date.now() / 1000) * 1000).toLocaleTimeString()}`}</p>
-                    <p className={isMyMessage ? `${sentBubble} ml-4` : `${recvBubble} mr-4`}>
+                <div
+                  className={`flex items-end gap-3 ${isMyMessage ? "justify-end" : "justify-start"}`}
+                  key={i}
+                >
+                  <div
+                    className={`flex flex-1 flex-col gap-1 ${isMyMessage ? "items-end text-right" : "items-start text-left"}`}
+                  >
+                    <p className="text-[#9d9db9] text-[13px] font-normal">
+                      {senderLabel}
+                    </p>
+                    <p
+                      className={
+                        isMyMessage
+                          ? `${BUBBLE_STYLES.sent} ml-4`
+                          : `${BUBBLE_STYLES.received} mr-4`
+                      }
+                    >
                       {m.text}
                     </p>
                   </div>
@@ -136,7 +154,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               );
             })
           ) : (
-            <p className="text-gray-500 text-center mt-10 text-sm">Choose a chat or start a new one</p>
+            <p className="text-gray-500 text-center mt-10 text-sm">
+              Choose a chat or start a new one
+            </p>
           )}
         </div>
       </div>
@@ -164,7 +184,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               disabled={loading}
             />
             <button className="w-10 h-10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-colors duration-200">
-              <span className="material-symbols-outlined">sentiment_satisfied</span>
+              <span className="material-symbols-outlined">
+                sentiment_satisfied
+              </span>
             </button>
             <button
               onClick={onSendMessage}
@@ -178,12 +200,16 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               ) : (
                 <>
                   Send
-                  <span className="material-symbols-outlined text-base">send</span>
+                  <span className="material-symbols-outlined text-base">
+                    send
+                  </span>
                 </>
               )}
             </button>
           </div>
-          <div className="text-xs text-gray-500 mt-2">{input.length}/{MAX_MESSAGE_LENGTH} characters</div>
+          <div className="text-xs text-gray-500 mt-2">
+            {input.length}/{MAX_MESSAGE_LENGTH} characters
+          </div>
         </div>
       )}
 

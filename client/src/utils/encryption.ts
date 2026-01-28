@@ -34,14 +34,14 @@ export function deriveSharedSecret(
   privateScalar[0] &= 248;
   privateScalar[31] &= 127;
   privateScalar[31] |= 64;
-  
+
   // Perform X25519 ECDH directly (no Ed25519 conversion needed)
   const sharedSecret = x25519.scalarMult(privateScalar, theirPublicKeyBytes);
-  
+
   // Apply HKDF to derive a proper symmetric key
   // This ensures we get a uniformly random key suitable for encryption
   const derivedKey = hkdf(sha256, sharedSecret, undefined, INFO_MESSAGE, 32);
-  
+
   return derivedKey;
 }
 
@@ -55,14 +55,14 @@ export function deriveSharedSecret(
 export function generateNonce(counter: number): Uint8Array {
   const nonce = new Uint8Array(NONCE_LENGTH);
   const view = new DataView(nonce.buffer);
-  
+
   // First 8 bytes: current timestamp in milliseconds
   const timestamp = Date.now();
   view.setBigUint64(0, BigInt(timestamp), false); // Big-endian
-  
+
   // Last 4 bytes: counter
   view.setUint32(8, counter, false); // Big-endian
-  
+
   return nonce;
 }
 
@@ -82,21 +82,21 @@ export function encryptMessage(
   if (nonce.length !== NONCE_LENGTH) {
     throw new Error(`Nonce must be ${NONCE_LENGTH} bytes`);
   }
-  
+
   // Convert plaintext to bytes
   const plaintextBytes = new TextEncoder().encode(plaintext);
-  
+
   // Create ChaCha20-Poly1305 cipher
   const cipher = chacha20poly1305(sharedSecret, nonce);
-  
+
   // Encrypt (returns ciphertext + auth tag appended)
   const encrypted = cipher.encrypt(plaintextBytes);
-  
+
   // Format: nonce || encrypted (which includes auth tag)
   const result = new Uint8Array(NONCE_LENGTH + encrypted.length);
   result.set(nonce, 0);
   result.set(encrypted, NONCE_LENGTH);
-  
+
   return result;
 }
 
@@ -115,28 +115,24 @@ export function decryptMessage(
   if (encryptedData.length < NONCE_LENGTH + AUTH_TAG_LENGTH) {
     throw new Error("Encrypted data too short");
   }
-  
+
   // Extract nonce and ciphertext
   const nonce = encryptedData.slice(0, NONCE_LENGTH);
   const ciphertextWithTag = encryptedData.slice(NONCE_LENGTH);
-  
+
   // Create ChaCha20-Poly1305 cipher
   const cipher = chacha20poly1305(sharedSecret, nonce);
-  
+
   try {
     // Decrypt and verify authentication tag
     const decrypted = cipher.decrypt(ciphertextWithTag);
-    
+
     // Convert bytes to string
     return new TextDecoder().decode(decrypted);
-  } catch (error) {
+  } catch {
     throw new Error("Decryption failed - message may be corrupted or tampered with");
   }
 }
-
-/**
- * Convert encrypted data to Base64 for storage/transmission
- */
 
 /**
  * Convert encrypted data to Base64 for storage/transmission
@@ -162,18 +158,18 @@ export function validateMessageForEncryption(message: string, maxLength: number 
   if (!message || message.trim().length === 0) {
     throw new Error("Message cannot be empty");
   }
-  
+
   if (message.length > maxLength) {
     throw new Error(`Message too long (${message.length}/${maxLength} chars)`);
   }
-  
+
   // Check if message contains only valid UTF-8
   try {
     new TextEncoder().encode(message);
   } catch {
     throw new Error("Message contains invalid characters");
   }
-  
+
   return true;
 }
 
@@ -197,14 +193,14 @@ export const SecurityUtils = {
   clearSensitiveData(data: Uint8Array): void {
     data.fill(0);
   },
-  
+
   /**
    * Check if we're in a secure context (HTTPS or localhost)
    */
   isSecureContext(): boolean {
     return window.isSecureContext;
   },
-  
+
   /**
    * Warn if running in insecure context
    */

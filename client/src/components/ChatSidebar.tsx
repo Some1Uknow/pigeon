@@ -1,17 +1,6 @@
-import React from 'react';
 import pigeon from "../assets/pigeon.png";
-
-interface Message {
-  sender: any; // PublicKey
-  text: string;
-  timestamp: any; // BN
-}
-
-interface Chat {
-  receiver: string;
-  messages: Message[];
-  isSentByMe: boolean;
-}
+import { truncateAddress } from "../utils/format";
+import type { Chat } from "../types/chat";
 
 interface ChatSidebarProps {
   chats: Chat[];
@@ -20,21 +9,16 @@ interface ChatSidebarProps {
   onNewChat: () => void;
 }
 
-const ChatSidebar: React.FC<ChatSidebarProps> = ({
+const ChatSidebar = ({
   chats,
   activeChat,
   onOpenChat,
   onNewChat,
-}) => {
-  const truncateAddress = (addr: string | undefined) => {
-    if (!addr) return "-";
-    if (addr.length <= 12) return addr;
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
-  };
+}: ChatSidebarProps) => {
   return (
-  <aside className="shrink-0 border-r border-white/5 bg-black/20 flex flex-col p-4">
-    <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
+    <aside className="shrink-0 border-r border-white/5 bg-black/20 flex flex-col p-4">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
           <div className="w-10 h-10">
             <img src={pigeon} alt="Pigeon" className="w-10 h-10 object-contain" />
           </div>
@@ -42,14 +26,14 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
             <h1 className="text-white text-base font-medium">Pigeon</h1>
             <p className="text-[#9d9db9] text-sm font-normal">Online</p>
           </div>
-          </div>
-          <button
-            onClick={onNewChat}
-            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium"
-          >
-            New
-          </button>
         </div>
+        <button
+          onClick={onNewChat}
+          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium"
+        >
+          New
+        </button>
+      </div>
 
       <div className="relative mb-4">
         <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#9d9db9]">search</span>
@@ -60,7 +44,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
         />
       </div>
 
-  <nav className="grow overflow-y-auto pr-2 -mr-2">
+      <nav className="grow overflow-y-auto pr-2 -mr-2">
         <div className="flex flex-col gap-1">
           {chats.length === 0 ? (
             <p className="text-gray-500 text-sm mt-8 text-center">No chats yet</p>
@@ -71,9 +55,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                 <button
                   key={chat.receiver}
                   onClick={() => onOpenChat(chat.receiver)}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-200 w-full text-left relative ${
-                    isActive ? "bg-primary/20 border border-primary/50" : "hover:bg-white/5"
-                  }`}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-200 w-full text-left relative ${isActive ? "bg-primary/20 border border-primary/50" : "hover:bg-white/5"
+                    }`}
                 >
                   {isActive && <div className="absolute left-0 top-0 h-full w-1 bg-primary shadow-[0_0_15px_rgba(77,91,206,0.8)]" />}
                   <div className="relative">

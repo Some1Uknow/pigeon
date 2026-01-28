@@ -1,3 +1,5 @@
+import type { FormEvent } from "react";
+
 interface NewChatModalProps {
   showModal: boolean;
   onClose: () => void;
@@ -13,7 +15,7 @@ export default function NewChatModal({
 }: NewChatModalProps) {
   if (!showModal) return null;
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const address = formData.get("address") as string;
