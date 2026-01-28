@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef, useMemo, useCallback } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Connection, PublicKey } from "@solana/web3.js";
@@ -9,7 +9,6 @@ import type { Chat, Message } from "../types/chat";
 import { useEncryption } from "../contexts/EncryptionContext";
 import idl from "../solana_program.json";
 
-// Polling interval in milliseconds
 const POLLING_INTERVAL_MS = 2000;
 
 interface UseWebSocketChatParams {
@@ -19,7 +18,86 @@ interface UseWebSocketChatParams {
   setChats: Dispatch<SetStateAction<Chat[]>>;
 }
 
-// Custom hook to manage WebSocket subscriptions + polling fallback for real-time chat updates
+interface RawMessage {
+  sender: PublicKey;
+  encryptedPayload?: Uint8Array | number[];
+  payloadLen?: number;
+  timestamp: anchor.BN;
+}
+
+interface DecryptionContext {
+  walletKeyBase58: string;
+  activeChatReceiver: string;
+  encryption: ReturnType<typeof useEncryption>;
+}
+
+/**
+ * Decrypts a single on-chain message
+ */
+const decryptMessage = async (
+  msg: RawMessage,
+  ctx: DecryptionContext
+): Promise<Message> => {
+  const { walletKeyBase58, activeChatReceiver, encryption } = ctx;
+
+  try {
+    const senderAddr = msg.sender.toBase58();
+    const isMyMessage = senderAddr === walletKeyBase58;
+    const otherPartyAddr = isMyMessage ? activeChatReceiver : senderAddr;
+
+    if (!encryption.isInitialized) {
+      return {
+        sender: msg.sender,
+        text: "🔒 [Encrypted - Sign message to decrypt]",
+        timestamp: msg.timestamp,
+      };
+    }
+
+    const rawPayload = msg.encryptedPayload;
+    const payloadLength = Number(msg.payloadLen ?? 0);
+
+    if (!rawPayload || payloadLength < MIN_ENCRYPTED_LENGTH) {
+      return {
+        sender: msg.sender,
+        text: "⏳ Loading...",
+        timestamp: msg.timestamp,
+      };
+    }
+
+    const payloadBuffer =
+      rawPayload instanceof Uint8Array ? rawPayload : new Uint8Array(rawPayload);
+    const usableLength = Math.min(payloadBuffer.length, payloadLength);
+    const encryptedData = payloadBuffer.slice(0, usableLength);
+    const plaintext = await encryption.decryptMessage(encryptedData, otherPartyAddr);
+
+    return {
+      sender: msg.sender,
+      text: plaintext,
+      timestamp: msg.timestamp,
+    };
+  } catch (err) {
+    console.error("Failed to decrypt message:", err);
+    return {
+      sender: msg.sender,
+      text: "⚠️ [Decryption failed]",
+      timestamp: msg.timestamp,
+    };
+  }
+};
+
+/**
+ * Decrypts all messages from an on-chain account
+ */
+const decryptAllMessages = async (
+  rawMessages: RawMessage[],
+  ctx: DecryptionContext
+): Promise<Message[]> => {
+  return Promise.all(rawMessages.map((msg) => decryptMessage(msg, ctx)));
+};
+
+/**
+ * Custom hook to manage WebSocket subscriptions + polling fallback for real-time chat updates
+ */
 export const useWebSocketChat = ({
   activeChat,
   connection,
@@ -36,6 +114,39 @@ export const useWebSocketChat = ({
   const activeChatReceiver = activeChat?.receiver;
   const walletKeyBase58 = wallet.publicKey?.toBase58();
 
+  // Memoized state updater for chat messages
+  const updateChatMessages = useCallback(
+    (messages: Message[], receiverAddress: string) => {
+      setActiveChat((prev) => {
+        if (!prev || prev.receiver !== receiverAddress) return prev;
+        return { ...prev, messages };
+      });
+
+      setChats((prev) => {
+        let found = false;
+        const next = prev.map((chat) => {
+          if (chat.receiver === receiverAddress) {
+            found = true;
+            return { ...chat, messages };
+          }
+          return chat;
+        });
+
+        if (!found) {
+          next.push({
+            receiver: receiverAddress,
+            messages,
+            isSentByMe: walletKeyBase58 === receiverAddress,
+          });
+        }
+
+        return next;
+      });
+    },
+    [setActiveChat, setChats, walletKeyBase58]
+  );
+
+  // WebSocket subscription effect
   useEffect(() => {
     if (!wallet.publicKey || !activeChatReceiver) {
       if (accountSubscriptionRef.current !== null) {
@@ -46,152 +157,37 @@ export const useWebSocketChat = ({
     }
 
     let disposed = false;
+    const programId = new anchor.web3.PublicKey((idl as any).address);
 
     const setupWebSocket = async () => {
       try {
-        const [chatPda] = getChatPda(wallet.publicKey!, new anchor.web3.PublicKey(activeChatReceiver));
-
-        console.log("🔌 Setting up WebSocket subscription for chat:", chatPda.toBase58());
+        const [chatPda] = getChatPda(
+          wallet.publicKey!,
+          new anchor.web3.PublicKey(activeChatReceiver)
+        );
 
         const subscriptionId = connection.onAccountChange(
           chatPda,
           async (accountInfo) => {
             if (disposed) return;
-            console.log("📨 Real-time update received!");
 
             try {
-              if (!accountInfo || accountInfo.data?.length === 0) {
-                console.warn("⚠️ Skipping empty account update payload");
-                return;
-              }
-
-              const ownerMatchesProgram =
-                accountInfo.owner && accountInfo.owner.equals(new anchor.web3.PublicKey((idl as any).address));
-              if (!ownerMatchesProgram) {
-                console.warn(
-                  "⚠️ Skipping update for account owned by",
-                  accountInfo.owner?.toBase58?.()
-                );
-                return;
-              }
-
-              if (accountInfo.data.length < 8) {
-                console.warn(
-                  "⚠️ Account data too small to decode, length:",
-                  accountInfo.data.length
-                );
-                return;
-              }
+              // Validate account data
+              if (!accountInfo?.data?.length) return;
+              if (!accountInfo.owner?.equals(programId)) return;
+              if (accountInfo.data.length < 8) return;
 
               const decoded = coder.decode("ChatAccount", accountInfo.data);
+              if (!decoded?.messages) return;
 
-              if (!decoded || !decoded.messages) return;
+              const decryptionCtx: DecryptionContext = {
+                walletKeyBase58: walletKeyBase58!,
+                activeChatReceiver,
+                encryption,
+              };
 
-              const messages = await Promise.all(
-                decoded.messages.map(async (msg: any) => {
-                  try {
-                    const senderAddr = msg.sender.toBase58();
-                    const isMyMessage = senderAddr === walletKeyBase58;
-                    const otherPartyAddr = isMyMessage
-                      ? activeChatReceiver
-                      : senderAddr;
-
-                    if (encryption.isInitialized) {
-                      const rawPayload = msg.encryptedPayload as
-                        | Uint8Array
-                        | number[]
-                        | undefined;
-                      const payloadLength = Number(msg.payloadLen ?? 0);
-
-                      if (!rawPayload || payloadLength < MIN_ENCRYPTED_LENGTH) {
-                        console.warn(
-                          "⚠️ Invalid encrypted data in subscription payload",
-                          {
-                            exists: !!rawPayload,
-                            length: payloadLength,
-                            payloadType: rawPayload?.constructor?.name,
-                            sample: Array.from(rawPayload || []).slice(0, 10),
-                          }
-                        );
-                        return {
-                          sender: msg.sender,
-                          text: "⏳ Loading...",
-                          timestamp: msg.timestamp,
-                        };
-                      }
-
-                      const payloadBuffer =
-                        rawPayload instanceof Uint8Array
-                          ? rawPayload
-                          : new Uint8Array(rawPayload);
-                      const usableLength = Math.min(
-                        payloadBuffer.length,
-                        payloadLength
-                      );
-                      const encryptedData = payloadBuffer.slice(0, usableLength);
-                      const plaintext = await encryption.decryptMessage(
-                        encryptedData,
-                        otherPartyAddr
-                      );
-
-                      return {
-                        sender: msg.sender,
-                        text: plaintext,
-                        timestamp: msg.timestamp,
-                      };
-                    }
-
-                    return {
-                      sender: msg.sender,
-                      text: "🔒 [Encrypted - Sign message to decrypt]",
-                      timestamp: msg.timestamp,
-                    };
-                  } catch (decryptErr) {
-                    console.error("Failed to decrypt message:", decryptErr);
-                    return {
-                      sender: msg.sender,
-                      text: "⚠️ [Decryption failed]",
-                      timestamp: msg.timestamp,
-                    };
-                  }
-                })
-              );
-
-              setActiveChat((prev) => {
-                if (!prev || prev.receiver !== activeChatReceiver) {
-                  return prev;
-                }
-                return {
-                  ...prev,
-                  messages,
-                };
-              });
-
-              setChats((prev) => {
-                let found = false;
-                const next = prev.map((chat) => {
-                  if (chat.receiver === activeChatReceiver) {
-                    found = true;
-                    return {
-                      ...chat,
-                      messages,
-                    };
-                  }
-                  return chat;
-                });
-
-                if (!found) {
-                  next.push({
-                    receiver: activeChatReceiver,
-                    messages,
-                    isSentByMe:
-                      walletKeyBase58 !== undefined &&
-                      walletKeyBase58 === activeChatReceiver,
-                  });
-                }
-
-                return next;
-              });
+              const messages = await decryptAllMessages(decoded.messages, decryptionCtx);
+              updateChatMessages(messages, activeChatReceiver);
             } catch (err) {
               console.error("Error processing WebSocket update:", err);
             }
@@ -200,7 +196,6 @@ export const useWebSocketChat = ({
         );
 
         accountSubscriptionRef.current = subscriptionId;
-        console.log("✅ WebSocket subscription active (ID:", subscriptionId, ")");
       } catch (err) {
         console.error("Error setting up WebSocket:", err);
       }
@@ -213,7 +208,6 @@ export const useWebSocketChat = ({
       if (accountSubscriptionRef.current !== null) {
         connection.removeAccountChangeListener(accountSubscriptionRef.current);
         accountSubscriptionRef.current = null;
-        console.log("🔌 WebSocket subscription cleaned up");
       }
     };
   }, [
@@ -223,10 +217,10 @@ export const useWebSocketChat = ({
     connection,
     encryption,
     coder,
-    setActiveChat,
-    setChats,
+    updateChatMessages,
   ]);
 
+  // Polling fallback effect
   useEffect(() => {
     if (!wallet.publicKey || !activeChatReceiver || !encryption.isInitialized) {
       if (pollingIntervalRef.current) {
@@ -239,69 +233,25 @@ export const useWebSocketChat = ({
     const pollMessages = async () => {
       try {
         const program = new anchor.Program(idl as any, { connection });
-        const chatPda = getChatPda(wallet.publicKey!, new PublicKey(activeChatReceiver))[0];
+        const [chatPda] = getChatPda(wallet.publicKey!, new PublicKey(activeChatReceiver));
 
         const acc = await (program.account as any).chatAccount.fetchNullable(chatPda);
-        if (!acc || !acc.messages) return;
+        if (!acc?.messages) return;
 
-        // Only update if message count changed
+        // Skip if message count hasn't changed
         if (acc.messages.length === lastMessageCountRef.current) return;
         lastMessageCountRef.current = acc.messages.length;
 
-        console.log("📬 Polling detected new messages");
+        const decryptionCtx: DecryptionContext = {
+          walletKeyBase58: walletKeyBase58!,
+          activeChatReceiver,
+          encryption,
+        };
 
-        const messages: Message[] = await Promise.all(
-          acc.messages.map(async (msg: any) => {
-            try {
-              const senderAddr = msg.sender.toBase58();
-              const isMyMessage = senderAddr === walletKeyBase58;
-              const otherPartyAddr = isMyMessage ? activeChatReceiver : senderAddr;
-
-              const rawPayload = msg.encryptedPayload as Uint8Array | number[] | undefined;
-              const payloadLength = Number(msg.payloadLen ?? 0);
-
-              if (!rawPayload || payloadLength < MIN_ENCRYPTED_LENGTH) {
-                return {
-                  sender: msg.sender,
-                  text: "⏳ Loading...",
-                  timestamp: msg.timestamp,
-                };
-              }
-
-              const payloadBuffer = rawPayload instanceof Uint8Array ? rawPayload : new Uint8Array(rawPayload);
-              const usableLength = Math.min(payloadBuffer.length, payloadLength);
-              const encryptedData = payloadBuffer.slice(0, usableLength);
-              const plaintext = await encryption.decryptMessage(encryptedData, otherPartyAddr);
-
-              return {
-                sender: msg.sender,
-                text: plaintext,
-                timestamp: msg.timestamp,
-              };
-            } catch (decryptErr) {
-              console.error("Polling decrypt error:", decryptErr);
-              return {
-                sender: msg.sender,
-                text: "⚠️ [Decryption failed]",
-                timestamp: msg.timestamp,
-              };
-            }
-          })
-        );
-
-        setActiveChat((prev) => {
-          if (!prev || prev.receiver !== activeChatReceiver) return prev;
-          return { ...prev, messages };
-        });
-
-        setChats((prev) => {
-          return prev.map((chat) =>
-            chat.receiver === activeChatReceiver ? { ...chat, messages } : chat
-          );
-        });
+        const messages = await decryptAllMessages(acc.messages, decryptionCtx);
+        updateChatMessages(messages, activeChatReceiver);
       } catch (err) {
-        // Silent fail - WebSocket is the primary, polling is backup
-        console.debug("Polling fetch error (non-critical):", err);
+        // Silent fail - WebSocket is primary, polling is backup
       }
     };
 
@@ -310,13 +260,11 @@ export const useWebSocketChat = ({
 
     // Set up interval
     pollingIntervalRef.current = setInterval(pollMessages, POLLING_INTERVAL_MS);
-    console.log("⏱️ Polling fallback active (every 3s)");
 
     return () => {
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
         pollingIntervalRef.current = null;
-        console.log("⏱️ Polling fallback cleaned up");
       }
     };
   }, [
@@ -325,7 +273,6 @@ export const useWebSocketChat = ({
     activeChatReceiver,
     connection,
     encryption,
-    setActiveChat,
-    setChats,
+    updateChatMessages,
   ]);
 };
