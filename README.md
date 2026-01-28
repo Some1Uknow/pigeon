@@ -23,10 +23,14 @@ We are pushing the boundaries of what's possible on Solana. Coming soon:
 - **Private File Transfers:** Send images and documents without leaving a permanent on-chain footprint.
 - **Private Payments:** Confidential Token Extensions and private PER-based transfers to hide transaction amounts.
 
-### Get Started
+### Getting Started
 
 ```bash
 cd client
 pnpm install
 pnpm dev
 ```
+#### Make sure to have:
+
+- Solana Wallet with Devnet SOL
+- Helius Devnet URL in .env file
