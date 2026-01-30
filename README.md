@@ -1,36 +1,67 @@
 # Pigeon 🐦
 
-**The only messenger that actually respects you.**
+### The Unstoppable Messenger.
+
+> "Privacy is not a feature. It is a human right."
+
+---
 
 ### The Problem
-Messaging is broken. You are either being tracked, sold to advertisers, or facing laws like "Chat Control" that want to scan every message you send. Traditional "crypto" messengers have terrible UX and aren't built for humans.
+The internet has lost its way. Your private conversations are mined for data, sold to advertisers, or scanned by governments under the guise of "safety." Centralized servers are chokepoints—single points of failure that can be censored, subpoenaed, or shut down at a moment's whim.
 
 ### The Solution
-Pigeon is a decentralized, wallet-to-wallet messenger on Solana. No servers. No middlemen. Just you and your friends.
+**Pigeon** is the answer. We are building the first **unstoppable, wallet-to-wallet messenger** on Solana.
 
-### Why we are unique
-1. **Truly Private:** End-to-end encrypted by default. We literally can't read your messages even if we wanted to (we don't want to).
-2. **Unstoppable:** Powered by Solana. Fast, cheap, and censorship-resistant.
+We don't have servers. We don't have a database of your messages. We don't even have your phone number. 
 
-### How it works
-Your wallet is your identity. Your keys encrypt the data locally. The blockchain only stores encrypted blobs that only you and the recipient can unlock.
+Pigeon is a pure protocol connecting two cryptographic keypairs. It uses the Solana blockchain as a global, censorship-resistant communication layer.
 
-### Future works
-We are pushing the boundaries of what's possible on Solana. Coming soon:
+### Why We Win
+*   **Sovereign Identity:** Your wallet is your ID. No email, no phone number, no SIM swaps. You own your social graph.
+*   **Truly Private:** End-to-End Encrypted (E2EE) using X25519 key exchange signed by your wallet. Mathematics guarantees your privacy, not a privacy policy.
+*   **Unstoppable:** The backend is the Solana mainnet. As long as the blockchain produces blocks, Pigeon facilitates messages.
+*   **Lightning Fast:** Powered by Solana's high-performance runtime. Messages settle in milliseconds.
 
-- **Private State with MagicBlock PER:** True private logic (like smart contracts that no one can see) using Ephemeral Rollups.
-- **Private Group Chats:** Where only the group members hold the keys, scalable beyond 1:1.
-- **Private File Transfers:** Send images and documents without leaving a permanent on-chain footprint.
-- **Private Payments:** Confidential Token Extensions and private PER-based transfers to hide transaction amounts.
+### Architecture
+*   **Program:** Rust (Anchor Framework)
+*   **Client:** Next.js + React
+*   **Encryption:** X25519 (ECDH) + ChaCha20-Poly1305 (AEAD)
+*   **Storage:** On-chain account compression with rolling buffers.
+
+### The Roadmap
+
+We are just getting started. The future of communication is decentralized.
+
+- [x] Secure 1:1 Direct Messages
+- [x] On-chain User Registry (Public Key Discovery)
+- [x] Rolling Message History (No storage limits)
+- [x] Signature-based Identity Verification
+- [ ] **Mobile App (iOS/Android):** Native experience for freedom on the go.
+- [ ] **Rich Media:** Encrypted file sharing and image support (IPFS/Arweave integration).
+- [ ] **Push Notifications:** Decentralized notification layer (Dialect/Helius).
+- [ ] **Private State (MagicBlock PER):** True private logic using Ephemeral Rollups. Smart contracts that run in the dark.
+- [ ] **Group Chats:** Scalable, encrypted multi-party communication.
+- [ ] **Confidential Payments:** Send SOL/USDC privately alongside your messages using Token Extensions.
+- [ ] **Disappearing Messages:** Ephemeral messaging where history is cryptographically erased.
+---
 
 ### Getting Started
 
+Join the revolution. Run the code.
+
 ```bash
+# 1. Clone the repo
+git clone https://github.com/yourusername/pigeon.git
+
+# 2. Install Client Dependencies
 cd client
 pnpm install
+
+# 3. Run local server
 pnpm dev
 ```
-#### Make sure to have:
 
-- Solana Wallet with Devnet SOL
-- Helius Devnet URL in .env file
+**Requirements:**
+* Solana Wallet (Phantom recommened, Solflare works too)
+* Devnet SOL (Airdrop via CLI or faucet)
+* Helius Devnet URL in .env in /client folder
