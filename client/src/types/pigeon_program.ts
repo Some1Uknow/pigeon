@@ -1,14 +1,20 @@
-{
+/**
+ * Program IDL in camelCase format in order to be used in JS/TS.
+ *
+ * Note that this is only a type helper and is not the actual IDL. The original
+ * IDL can be found at `target/idl/pigeon_program.json`.
+ */
+export type PigeonProgram = {
   "address": "4tPu12rEL3zjVXeKx5hTbDt4dH3dbo6dTELYfVGUGQyv",
   "metadata": {
-    "name": "pigeon_program",
+    "name": "pigeonProgram",
     "version": "0.1.0",
     "spec": "0.1.0",
     "description": "Created with Anchor"
   },
   "instructions": [
     {
-      "name": "register_user",
+      "name": "registerUser",
       "discriminator": [
         2,
         241,
@@ -21,7 +27,7 @@
       ],
       "accounts": [
         {
-          "name": "user_account",
+          "name": "userAccount",
           "writable": true,
           "pda": {
             "seeds": [
@@ -47,19 +53,19 @@
           "signer": true
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
         {
-          "name": "encryption_key",
+          "name": "encryptionKey",
           "type": "pubkey"
         }
       ]
     },
     {
-      "name": "send_dm",
+      "name": "sendDm",
       "discriminator": [
         98,
         158,
@@ -72,7 +78,7 @@
       ],
       "accounts": [
         {
-          "name": "chat_account",
+          "name": "chatAccount",
           "writable": true,
           "pda": {
             "seeds": [
@@ -87,11 +93,11 @@
               },
               {
                 "kind": "account",
-                "path": "participant_a"
+                "path": "participantA"
               },
               {
                 "kind": "account",
-                "path": "participant_b"
+                "path": "participantB"
               }
             ]
           }
@@ -102,19 +108,19 @@
           "signer": true
         },
         {
-          "name": "participant_a"
+          "name": "participantA"
         },
         {
-          "name": "participant_b"
+          "name": "participantB"
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
         {
-          "name": "encrypted_text",
+          "name": "encryptedText",
           "type": "bytes"
         }
       ]
@@ -122,7 +128,7 @@
   ],
   "accounts": [
     {
-      "name": "ChatAccount",
+      "name": "chatAccount",
       "discriminator": [
         188,
         218,
@@ -135,7 +141,7 @@
       ]
     },
     {
-      "name": "UserAccount",
+      "name": "userAccount",
       "discriminator": [
         211,
         33,
@@ -151,33 +157,33 @@
   "errors": [
     {
       "code": 6000,
-      "name": "MessageTooLong",
+      "name": "messageTooLong",
       "msg": "Message too long!"
     },
     {
       "code": 6001,
-      "name": "EmptyMessage",
+      "name": "emptyMessage",
       "msg": "Message cannot be empty!"
     },
     {
       "code": 6002,
-      "name": "ChatFull",
+      "name": "chatFull",
       "msg": "Chat is full! Maximum 10 messages reached."
     },
     {
       "code": 6003,
-      "name": "InvalidParticipants",
+      "name": "invalidParticipants",
       "msg": "Chat participants do not match expected addresses."
     },
     {
       "code": 6004,
-      "name": "UnauthorizedSender",
+      "name": "unauthorizedSender",
       "msg": "Only chat participants can send messages."
     }
   ],
   "types": [
     {
-      "name": "ChatAccount",
+      "name": "chatAccount",
       "type": {
         "kind": "struct",
         "fields": [
@@ -195,7 +201,7 @@
             "type": {
               "vec": {
                 "defined": {
-                  "name": "DirectMessage"
+                  "name": "directMessage"
                 }
               }
             }
@@ -204,7 +210,7 @@
       }
     },
     {
-      "name": "DirectMessage",
+      "name": "directMessage",
       "type": {
         "kind": "struct",
         "fields": [
@@ -213,7 +219,7 @@
             "type": "pubkey"
           },
           {
-            "name": "encrypted_payload",
+            "name": "encryptedPayload",
             "type": {
               "array": [
                 "u8",
@@ -222,7 +228,7 @@
             }
           },
           {
-            "name": "payload_len",
+            "name": "payloadLen",
             "type": "u16"
           },
           {
@@ -233,16 +239,16 @@
       }
     },
     {
-      "name": "UserAccount",
+      "name": "userAccount",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "encryption_pubkey",
+            "name": "encryptionPubkey",
             "type": "pubkey"
           }
         ]
       }
     }
   ]
-}
+};

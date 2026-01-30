@@ -22,11 +22,11 @@ pub fn validate_encrypted_payload(encrypted_text: &[u8]) -> Result<u16> {
     u16::try_from(encrypted_len).map_err(|_| error!(ChatError::MessageTooLong))
 }
 
-/// Ensures the chat has capacity for more messages.
-pub fn ensure_chat_capacity(chat_account: &ChatAccount) -> Result<()> {
-    require!(chat_account.messages.len() < MAX_MESSAGES_PER_CHAT, ChatError::ChatFull);
+pub fn ensure_chat_capacity(_chat_account: &ChatAccount) -> Result<()> {
+    // Capacity check removed because we now use rolling buffer
     Ok(())
 }
+
 
 /// Ensures the passed accounts are in canonical order.
 pub fn ensure_canonical_accounts(participant_a: &Pubkey, participant_b: &Pubkey) -> Result<()> {
@@ -80,6 +80,11 @@ pub fn push_direct_message(
     payload_len: u16,
 ) -> Result<()> {
     let timestamp = Clock::get()?.unix_timestamp;
+    
+    if chat_account.messages.len() >= MAX_MESSAGES_PER_CHAT {
+        chat_account.messages.remove(0);
+    }
+
     chat_account.messages.push(DirectMessage {
         sender,
         encrypted_payload,

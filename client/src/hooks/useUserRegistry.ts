@@ -1,0 +1,81 @@
+import { useCallback } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { PublicKey, SystemProgram } from "@solana/web3.js";
+import * as anchor from "@coral-xyz/anchor";
+import { useProgram } from "./useProgram";
+import { sendTransactionWithRetry } from "../utils/transaction";
+
+export const useUserRegistry = () => {
+    const wallet = useWallet();
+    const { getProgram, connection } = useProgram();
+
+    // PDA for UserAccount: ["user", wallet_pubkey]
+    const getUserAccountPda = useCallback((userPubkey: PublicKey) => {
+        const program = getProgram();
+        const [pda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("user"), userPubkey.toBuffer()],
+            program.programId
+        );
+        return pda;
+    }, [getProgram]);
+
+    /**
+     * Register the current user with their encryption public key.
+     */
+    const registerUser = useCallback(
+        async (encryptionKey: Uint8Array) => {
+            if (!wallet.publicKey) throw new Error("Wallet not connected");
+
+            const program = getProgram();
+            const userAccountPda = getUserAccountPda(wallet.publicKey);
+            const encryptionKeyPubkey = new PublicKey(encryptionKey); // 32 bytes
+
+            const ix = await program.methods
+                .registerUser(encryptionKeyPubkey)
+                .accounts({
+                    userAccount: userAccountPda,
+                    authority: wallet.publicKey,
+                    systemProgram: SystemProgram.programId,
+                })
+                .instruction();
+
+            const tx = new anchor.web3.Transaction().add(ix);
+            const signature = await sendTransactionWithRetry(wallet, connection, tx);
+
+            console.log("✅ User registered:", signature);
+            return signature;
+        },
+        [wallet, connection, getProgram, getUserAccountPda]
+    );
+
+    /**
+     * Check if a user is registered and return their encryption key.
+     * Returns null if not registered.
+     */
+    const getUserEncryptionKey = useCallback(
+        async (userAddress: string): Promise<Uint8Array | null> => {
+            const program = getProgram();
+            const userPubkey = new PublicKey(userAddress);
+            const pda = getUserAccountPda(userPubkey);
+
+            try {
+                const account = await program.account.userAccount.fetch(pda);
+                // encryptionPubkey is stored as PublicKey in the account
+                return account.encryptionPubkey.toBytes();
+            } catch (e: Error) {
+                if (e.message?.includes("Account does not exist")) {
+                    return null;
+                }
+                console.error("Failed to fetch user:", e);
+                return null; // Assume not registered on error
+            }
+        },
+        [getProgram, getUserAccountPda]
+    );
+
+    return {
+        registerUser,
+        getUserEncryptionKey,
+        getUserAccountPda,
+    };
+};

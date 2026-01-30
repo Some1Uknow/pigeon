@@ -8,7 +8,7 @@ describe("Pigeon DM Chat", () => {
   anchor.setProvider(provider as AnchorProvider);
   const program = anchor.workspace.PigeonProgram as Program<PigeonProgram>;
 
-  const payer = provider.wallet as any;
+  const payer = provider.wallet as anchor.Wallet;
   const userA = web3.Keypair.generate();
   const userB = web3.Keypair.generate();
   const userC = web3.Keypair.generate();

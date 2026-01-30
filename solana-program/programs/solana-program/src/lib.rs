@@ -7,9 +7,10 @@ pub mod state;
 pub mod utils;
 
 pub use errors::ChatError;
-pub use state::{ChatAccount, DirectMessage};
+pub use state::{ChatAccount, DirectMessage, UserAccount};
+pub use instructions::*;
 
-declare_id!("9v4KnCjYJSTe7Cgt2JdNnDkkUJFADZrAkUPapfrh8N4N");
+declare_id!("4tPu12rEL3zjVXeKx5hTbDt4dH3dbo6dTELYfVGUGQyv");
 
 #[program]
 pub mod pigeon_program {
@@ -17,6 +18,10 @@ pub mod pigeon_program {
 
     pub fn send_dm(ctx: Context<SendDm>, encrypted_text: Vec<u8>) -> Result<()> {
         instructions::send_dm::handler(ctx, encrypted_text)
+    }
+
+    pub fn register_user(ctx: Context<RegisterUser>, encryption_key: Pubkey) -> Result<()> {
+        instructions::register_user::handler(ctx, encryption_key)
     }
 }
 
@@ -39,10 +44,8 @@ pub struct SendDm<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
 
-    /// CHECK: canonical participant (lexicographically smaller)
     pub participant_a: UncheckedAccount<'info>,
 
-    /// CHECK: canonical participant (lexicographically larger)
     pub participant_b: UncheckedAccount<'info>,
 
     pub system_program: Program<'info, System>,

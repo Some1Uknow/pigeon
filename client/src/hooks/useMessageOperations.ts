@@ -4,7 +4,7 @@ import { PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
 
 import { orderParticipants } from "../utils/chatUtils";
-import { MAX_MESSAGE_LENGTH, MAX_MESSAGES_PER_CHAT } from "../utils/chatConstants";
+import { MAX_MESSAGE_LENGTH } from "../utils/chatConstants";
 import { sendTransactionWithRetry } from "../utils/transaction";
 import { useProgram } from "./useProgram";
 import { useEncryption } from "../contexts/EncryptionContext";
@@ -75,11 +75,7 @@ export const useMessageOperations = () => {
         );
       }
 
-      if (activeChat.messages.length >= MAX_MESSAGES_PER_CHAT) {
-        throw new Error(
-          `This chat has reached the maximum of ${MAX_MESSAGES_PER_CHAT} messages.`
-        );
-      }
+      // Capacity check removed (rolling buffer implemented on-chain)
 
       // Ensure encryption is initialized
       if (!encryption.isInitialized) {

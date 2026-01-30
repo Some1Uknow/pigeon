@@ -14,6 +14,9 @@ pub const CHAT_ACCOUNT_SIZE: usize = 8 /* discriminator */
     + 4 /* vec len prefix */
     + (MAX_MESSAGES_PER_CHAT * DIRECT_MESSAGE_SIZE);
 
+pub const USER_ACCOUNT_SIZE: usize = 8 /* discriminator */
+    + 32; /* encryption pubkey */
+
 /// Convenience helper for the zeroed participant array
 pub fn empty_participants() -> [Pubkey; 2] {
     [Pubkey::default(), Pubkey::default()]

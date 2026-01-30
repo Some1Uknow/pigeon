@@ -15,3 +15,9 @@ pub struct DirectMessage {
     pub payload_len: u16,
     pub timestamp: i64,
 }
+
+#[account]
+pub struct UserAccount {
+    pub encryption_pubkey: Pubkey,
+}
+
