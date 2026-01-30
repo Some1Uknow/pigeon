@@ -37,10 +37,10 @@ We are just getting started. The future of communication is decentralized.
 - [x] Rolling Message History (No storage limits)
 - [x] Signature-based Identity Verification
 - [ ] **Mobile App (Solana Seeker):** Native experience for freedom on the go.
-- [ ] **Rich Media:** Encrypted file sharing and image support (IPFS/Arweave integration).
-- [ ] **Push Notifications:** Decentralized notification layer (Dialect/Helius).
-- [ ] **Private State (MagicBlock PER):** True private logic using Ephemeral Rollups. Smart contracts that run in the dark.
-- [ ] **Group Chats:** Scalable, encrypted multi-party communication.
+- [ ] **Double Ratchet Mechanism:** Signal-protocol style forward secrecy where keys rotate with every message.
+- [ ] **Zero-Knowledge Proofs (ZKPs):** Verify identity without revealing your social graph.
+- [ ] **Off-chain Signaling:** Metadata protection to obscure who is talking to whom.
+- [ ] **Private State (MagicBlock PER):** Private logic using Ephemeral Rollups.
 - [ ] **Confidential Payments:** Send SOL/USDC privately alongside your messages using Token Extensions.
 - [ ] **Disappearing Messages:** Ephemeral messaging where history is cryptographically erased.
 ---
