@@ -16,10 +16,10 @@ We don't have servers. We don't have a database of your messages. We don't even 
 
 Pigeon is a pure protocol connecting two cryptographic keypairs. It uses the Solana blockchain as a global, censorship-resistant communication layer.
 
-### Why We Win
+### Why Pigeon?
 *   **Sovereign Identity:** Your wallet is your ID. No email, no phone number, no SIM swaps. You own your social graph.
 *   **Truly Private:** End-to-End Encrypted (E2EE) using X25519 key exchange signed by your wallet. Mathematics guarantees your privacy, not a privacy policy.
-*   **Unstoppable:** The backend is the Solana mainnet. As long as the blockchain produces blocks, Pigeon facilitates messages.
+*   **Unstoppable:** The backend is the Solana mainnet. As long as the chain produces blocks (which it has without going down for quite a while), Pigeon facilitates messages.
 *   **Lightning Fast:** Powered by Solana's high-performance runtime. Messages settle in milliseconds.
 
 ### Architecture
@@ -36,7 +36,7 @@ We are just getting started. The future of communication is decentralized.
 - [x] On-chain User Registry (Public Key Discovery)
 - [x] Rolling Message History (No storage limits)
 - [x] Signature-based Identity Verification
-- [ ] **Mobile App (iOS/Android):** Native experience for freedom on the go.
+- [ ] **Mobile App (Solana Seeker):** Native experience for freedom on the go.
 - [ ] **Rich Media:** Encrypted file sharing and image support (IPFS/Arweave integration).
 - [ ] **Push Notifications:** Decentralized notification layer (Dialect/Helius).
 - [ ] **Private State (MagicBlock PER):** True private logic using Ephemeral Rollups. Smart contracts that run in the dark.

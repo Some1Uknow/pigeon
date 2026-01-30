@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { PublicKey, SystemProgram } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
 import { useProgram } from "./useProgram";
 import { sendTransactionWithRetry } from "../utils/transaction";
@@ -23,15 +23,12 @@ export const useUserRegistry = () => {
             if (!wallet.publicKey) throw new Error("Wallet not connected");
 
             const program = getProgram();
-            const userAccountPda = getUserAccountPda(wallet.publicKey);
             const encryptionKeyPubkey = new PublicKey(encryptionKey); // 32 bytes
 
             const ix = await program.methods
                 .registerUser(encryptionKeyPubkey)
                 .accounts({
-                    userAccount: userAccountPda,
                     authority: wallet.publicKey,
-                    systemProgram: SystemProgram.programId,
                 })
                 .instruction();
 
@@ -59,7 +56,7 @@ export const useUserRegistry = () => {
                     return null;
                 }
                 console.error("Failed to fetch user:", e);
-                return null; 
+                return null;
             }
         },
         [getProgram, getUserAccountPda]
