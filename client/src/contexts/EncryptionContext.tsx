@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { PublicKey } from "@solana/web3.js";
 import { hkdf } from "@noble/hashes/hkdf.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { x25519 } from "@noble/curves/ed25519.js";
@@ -11,13 +10,14 @@ import {
   generateNonce,
   SecurityUtils,
 } from "../utils/encryption";
+import { useUserRegistry } from "../hooks/useUserRegistry";
 
 /**
  * Encryption Context for managing E2EE state across the app
  * 
  * Architecture: Signature-Based Key Derivation
  * - Uses wallet.signMessage() to derive deterministic encryption keypair
- * - Each wallet generates a consistent encryption key from signature
+ * - Each wallet generates a consistent encryption key from signature (and wallet pubkey as salt)
  * - Keys cached in-memory per session
  * - User signs once per session to unlock encryption
  */
@@ -28,12 +28,6 @@ interface EncryptionContextType {
   
   // Decrypt a message from a specific sender
   decryptMessage: (encryptedData: Uint8Array, senderAddress: string) => Promise<string>;
-  
-  // Get the current message counter for a chat
-  getMessageCounter: (recipientAddress: string) => number;
-  
-  // Increment message counter
-  incrementCounter: (recipientAddress: string) => void;
   
   // Initialize encryption (prompts for signature)
   initializeEncryption: () => Promise<void>;
@@ -54,17 +48,42 @@ const DERIVATION_MESSAGE = "Sign this message to enable encrypted messaging on P
 
 export function EncryptionProvider({ children }: { children: React.ReactNode }) {
   const wallet = useWallet();
+  const { registerUser, getUserEncryptionKey } = useUserRegistry();
   const [encryptionKeypair, setEncryptionKeypair] = useState<Uint8Array | null>(null);
   const [sharedSecrets, setSharedSecrets] = useState<Map<string, Uint8Array>>(new Map());
-  const [messageCounters, setMessageCounters] = useState<Map<string, number>>(new Map());
+  const [recipientEncryptionKeys, setRecipientEncryptionKeys] = useState<Map<string, Uint8Array>>(new Map());
   const [isInitialized, setIsInitialized] = useState(false);
   const isEncryptionReady = Boolean(wallet.publicKey && wallet.signMessage);
+
+  const clearEncryptionState = useCallback(() => {
+    if (
+      !encryptionKeypair &&
+      !isInitialized &&
+      sharedSecrets.size === 0 &&
+      recipientEncryptionKeys.size === 0
+    ) {
+      return;
+    }
+
+    sharedSecrets.forEach((secret) => {
+      SecurityUtils.clearSensitiveData(secret);
+    });
+
+    if (encryptionKeypair) {
+      SecurityUtils.clearSensitiveData(encryptionKeypair);
+    }
+
+    setEncryptionKeypair(null);
+    setSharedSecrets(new Map());
+    setRecipientEncryptionKeys(new Map());
+    setIsInitialized(false);
+  }, [sharedSecrets, recipientEncryptionKeys, encryptionKeypair, isInitialized]);
 
   useEffect(() => {
     if (!wallet.connected) {
       clearEncryptionState();
     }
-  }, [wallet.connected]);
+  }, [wallet.connected, clearEncryptionState]);
 
  
   const initializeEncryption = useCallback(async () => {
@@ -75,12 +94,12 @@ export function EncryptionProvider({ children }: { children: React.ReactNode }) 
     try {
       
       const messageBytes = new TextEncoder().encode(DERIVATION_MESSAGE);
-      await wallet.signMessage(messageBytes);
+      const signature = await wallet.signMessage(messageBytes);
       
      
       const walletPubkeyBytes = wallet.publicKey.toBytes();
       const info = new TextEncoder().encode("pigeon-encryption-keypair-v1");
-      const seed = hkdf(sha256, walletPubkeyBytes, undefined, info, 32);
+      const seed = hkdf(sha256, signature, walletPubkeyBytes, info, 32);
       
       const privateKey = seed.slice();
       privateKey[0] &= 248;
@@ -97,18 +116,63 @@ export function EncryptionProvider({ children }: { children: React.ReactNode }) 
       setIsInitialized(true);
       
       SecurityUtils.checkSecureContext();
+
+      const derivedPubkey = publicKey;
+      const selfAddress = wallet.publicKey.toBase58();
+      const existingKey = await getUserEncryptionKey(selfAddress);
+
+      if (!existingKey) {
+        await registerUser(derivedPubkey);
+        console.log("✅ Encryption public key registered on-chain");
+      } else {
+        const matches = existingKey.length === derivedPubkey.length &&
+          existingKey.every((value, idx) => value === derivedPubkey[idx]);
+        if (!matches) {
+          throw new Error(
+            "Encryption key mismatch for this wallet. " +
+              "Existing on-chain key does not match derived key."
+          );
+        }
+      }
       
       console.log("✅ Encryption initialized successfully");
     //  console.log("📍 Encryption public key:", Buffer.from(publicKey).toString('hex').slice(0, 16) + '...');
     } catch (error) {
       console.error("Failed to initialize encryption:", error);
-      throw new Error("User rejected signature or encryption initialization failed");
+      clearEncryptionState();
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error("Encryption initialization failed");
     }
-  }, [wallet]);
+  }, [wallet, registerUser, getUserEncryptionKey, clearEncryptionState]);
+
+  const getRecipientEncryptionKey = useCallback(
+    async (recipientAddress: string): Promise<Uint8Array> => {
+      const cached = recipientEncryptionKeys.get(recipientAddress);
+      if (cached) {
+        return cached;
+      }
+
+      const onchainKey = await getUserEncryptionKey(recipientAddress);
+      if (!onchainKey) {
+        throw new Error("Recipient has not registered an encryption key yet");
+      }
+
+      setRecipientEncryptionKeys(prev => {
+        const next = new Map(prev);
+        next.set(recipientAddress, onchainKey);
+        return next;
+      });
+
+      return onchainKey;
+    },
+    [recipientEncryptionKeys, getUserEncryptionKey]
+  );
 
   
   const getSharedSecret = useCallback(
-    (recipientAddress: string): Uint8Array => {
+    async (recipientAddress: string): Promise<Uint8Array> => {
       if (!encryptionKeypair) {
         throw new Error("Encryption not initialized. Call initializeEncryption() first.");
       }
@@ -120,17 +184,7 @@ export function EncryptionProvider({ children }: { children: React.ReactNode }) 
 
       const myPrivateKey = encryptionKeypair.slice(0, 32);
       
-      const recipientWalletPubkey = new PublicKey(recipientAddress).toBytes();
-      const info = new TextEncoder().encode("pigeon-encryption-keypair-v1");
-      
-      const recipientSeed = hkdf(sha256, recipientWalletPubkey, undefined, info, 32);
-      
-      const recipientPrivateKey = recipientSeed.slice();
-      recipientPrivateKey[0] &= 248;
-      recipientPrivateKey[31] &= 127;
-      recipientPrivateKey[31] |= 64;
-      
-      const recipientEncryptionPubkey = x25519.getPublicKey(recipientPrivateKey);
+      const recipientEncryptionPubkey = await getRecipientEncryptionKey(recipientAddress);
       
       const sharedSecret = deriveSharedSecret(myPrivateKey, recipientEncryptionPubkey);
       
@@ -142,7 +196,7 @@ export function EncryptionProvider({ children }: { children: React.ReactNode }) 
       
       return sharedSecret;
     },
-    [encryptionKeypair, sharedSecrets]
+    [encryptionKeypair, sharedSecrets, getRecipientEncryptionKey]
   );
 
   /**
@@ -154,23 +208,14 @@ export function EncryptionProvider({ children }: { children: React.ReactNode }) 
         throw new Error("Encryption not initialized. Please sign the message first.");
       }
 
-      const sharedSecret = getSharedSecret(recipientAddress);
-
-      const counter = messageCounters.get(recipientAddress) || 0;
-
-      const nonce = generateNonce(counter);
+      const sharedSecret = await getSharedSecret(recipientAddress);
+      const nonce = generateNonce();
 
       const encrypted = encryptMessageUtil(message, sharedSecret, nonce);
 
-      setMessageCounters(prev => {
-        const newMap = new Map(prev);
-        newMap.set(recipientAddress, counter + 1);
-        return newMap;
-      });
-
       return encrypted;
     },
-    [isInitialized, encryptionKeypair, getSharedSecret, messageCounters]
+    [isInitialized, encryptionKeypair, getSharedSecret]
   );
 
   /**
@@ -182,7 +227,7 @@ export function EncryptionProvider({ children }: { children: React.ReactNode }) 
         throw new Error("Encryption not initialized. Please sign the message first.");
       }
 
-      const sharedSecret = getSharedSecret(senderAddress);
+      const sharedSecret = await getSharedSecret(senderAddress);
 
       try {
         const plaintext = decryptMessageUtil(encryptedData, sharedSecret);
@@ -195,45 +240,9 @@ export function EncryptionProvider({ children }: { children: React.ReactNode }) 
     [isInitialized, encryptionKeypair, getSharedSecret]
   );
 
-  const getMessageCounter = useCallback(
-    (recipientAddress: string): number => {
-      return messageCounters.get(recipientAddress) || 0;
-    },
-    [messageCounters]
-  );
-
-  const incrementCounter = useCallback(
-    (recipientAddress: string): void => {
-      setMessageCounters(prev => {
-        const newMap = new Map(prev);
-        const current = newMap.get(recipientAddress) || 0;
-        newMap.set(recipientAddress, current + 1);
-        return newMap;
-      });
-    },
-    []
-  );
-
-  const clearEncryptionState = useCallback(() => {
-    sharedSecrets.forEach((secret) => {
-      SecurityUtils.clearSensitiveData(secret);
-    });
-    
-    if (encryptionKeypair) {
-      SecurityUtils.clearSensitiveData(encryptionKeypair);
-    }
-    
-    setEncryptionKeypair(null);
-    setSharedSecrets(new Map());
-    setMessageCounters(new Map());
-    setIsInitialized(false);
-  }, [sharedSecrets, encryptionKeypair]);
-
   const value: EncryptionContextType = {
     encryptMessage,
     decryptMessage,
-    getMessageCounter,
-    incrementCounter,
     initializeEncryption,
     clearEncryptionState,
     isEncryptionReady,

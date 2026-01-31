@@ -10,7 +10,7 @@ import { sha256 } from "@noble/hashes/sha2.js";
  * 1. ECDH key agreement using X25519 (Curve25519)
  * 2. HKDF key derivation for per-message encryption keys
  * 3. ChaCha20-Poly1305 AEAD for message encryption
- * 4. Nonce format: timestamp (8 bytes) + counter (4 bytes)
+ * 4. Nonce format: 12 bytes of cryptographically secure randomness
  */
 
 const NONCE_LENGTH = 12; // ChaCha20-Poly1305 standard
@@ -47,21 +47,17 @@ export function deriveSharedSecret(
 
 /**
  * Generate a unique nonce for message encryption
- * Format: timestamp (8 bytes) + counter (4 bytes) = 12 bytes total
- * 
- * @param counter - Message counter to prevent nonce reuse
+ * Format: 12 bytes of cryptographically secure randomness
+ *
  * @returns 12-byte nonce
  */
-export function generateNonce(counter: number): Uint8Array {
+export function generateNonce(): Uint8Array {
   const nonce = new Uint8Array(NONCE_LENGTH);
-  const view = new DataView(nonce.buffer);
-
-  // First 8 bytes: current timestamp in milliseconds
-  const timestamp = Date.now();
-  view.setBigUint64(0, BigInt(timestamp), false); // Big-endian
-
-  // Last 4 bytes: counter
-  view.setUint32(8, counter, false); // Big-endian
+  const rng = globalThis.crypto?.getRandomValues;
+  if (!rng) {
+    throw new Error("Secure RNG not available for nonce generation");
+  }
+  rng.call(globalThis.crypto, nonce);
 
   return nonce;
 }

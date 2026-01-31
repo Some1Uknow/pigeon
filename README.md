@@ -19,14 +19,14 @@ Pigeon is a pure protocol connecting two cryptographic keypairs. It uses the Sol
 ### Why Pigeon?
 *   **Sovereign Identity:** Your wallet is your ID. No email, no phone number, no SIM swaps. You own your social graph.
 *   **Truly Private:** End-to-End Encrypted (E2EE) using X25519 key exchange signed by your wallet. Mathematics guarantees your privacy, not a privacy policy.
-*   **Unstoppable:** The backend is the Solana mainnet. As long as the chain produces blocks (which it has without going down for quite a while), Pigeon facilitates messages.
+*   **Unstoppable:** The backend is Solana (devnet by default via RPC). As long as the chain produces blocks, Pigeon facilitates messages.
 *   **Lightning Fast:** Powered by Solana's high-performance runtime. Messages settle in milliseconds.
 
 ### Architecture
 *   **Program:** Rust (Anchor Framework)
-*   **Client:** Next.js + React
+*   **Client:** Vite + React
 *   **Encryption:** X25519 (ECDH) + ChaCha20-Poly1305 (AEAD)
-*   **Storage:** On-chain account compression with rolling buffers.
+*   **Storage:** On-chain rolling buffer (last 10 messages).
 
 ### The Roadmap
 
@@ -34,13 +34,14 @@ We are just getting started. The future of communication is decentralized.
 
 - [x] Secure 1:1 Direct Messages
 - [x] On-chain User Registry (Public Key Discovery)
-- [x] Rolling Message History (No storage limits)
+- [x] Rolling Message History (last 10 on-chain)
 - [x] Signature-based Identity Verification
 - [ ] **Mobile App (Solana Seeker):** Native experience for freedom on the go.
 - [ ] **Double Ratchet Mechanism:** Signal-protocol style forward secrecy where keys rotate with every message.
 - [ ] **Zero-Knowledge Proofs (ZKPs):** Verify identity without revealing your social graph.
 - [ ] **Off-chain Signaling:** Metadata protection to obscure who is talking to whom.
 - [ ] **Private State (MagicBlock PER):** Private logic using Ephemeral Rollups.
+- [ ] **Longer History:** Encrypted off-chain storage + on-chain pointers (e.g., MagicBlock PER / IPFS / Arweave).
 - [ ] **Confidential Payments:** Send SOL/USDC privately alongside your messages using Token Extensions.
 - [ ] **Disappearing Messages:** Ephemeral messaging where history is cryptographically erased.
 ---
