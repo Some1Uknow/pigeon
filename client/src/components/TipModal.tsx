@@ -65,27 +65,25 @@ export function TipModal({ isOpen, onClose, recipientAddress, recipientLabel }: 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center font-body">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                className="absolute inset-0 bg-black/80 backdrop-blur-none"
                 onClick={handleClose}
             />
 
             {/* Modal */}
-            <div className="relative z-10 w-full max-w-md mx-4 bg-gray-900 rounded-2xl border border-gray-700 shadow-2xl">
+            <div className="relative z-10 w-full max-w-md mx-4 bg-black border border-[var(--color-term-green)] shadow-[8px_8px_0px_var(--color-term-dim)]">
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-gray-700">
-                    <h2 className="text-lg font-semibold text-white">
-                        {step === "success" ? "✅ Tip Sent!" : step === "error" ? "❌ Failed" : "💰 Send Tip"}
+                <div className="flex items-center justify-between p-4 bg-[var(--color-term-dim)]/20 border-b border-[var(--color-term-green)]">
+                    <h2 className="text-lg font-display font-bold text-[var(--color-term-green)] tracking-widest uppercase">
+                        {step === "success" ? "TX_CONFIRMED" : step === "error" ? "TX_FAILED" : "INIT_TRANSFER"}
                     </h2>
                     <button
                         onClick={handleClose}
-                        className="p-1 text-gray-400 hover:text-white transition-colors"
+                        className="text-[var(--color-term-green)] hover:text-white font-display font-bold"
                     >
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                        [ X ]
                     </button>
                 </div>
 
@@ -93,8 +91,8 @@ export function TipModal({ isOpen, onClose, recipientAddress, recipientLabel }: 
                 <div className="p-6">
                     {step === "amount" && (
                         <div className="space-y-6">
-                            <p className="text-gray-300 text-center">
-                                Send a tip to <span className="text-purple-400 font-medium">{displayRecipient}</span>
+                            <p className="text-[var(--color-term-dim)] text-center text-sm uppercase tracking-widest">
+                                Target: <span className="text-[var(--color-term-green)]">{displayRecipient}</span>
                             </p>
 
                             {/* Preset amounts */}
@@ -103,9 +101,9 @@ export function TipModal({ isOpen, onClose, recipientAddress, recipientLabel }: 
                                     <button
                                         key={preset.label}
                                         onClick={() => handlePresetClick(preset.lamports)}
-                                        className={`py-3 px-4 rounded-xl font-medium transition-all ${selectedAmount === preset.lamports && !customAmount
-                                                ? "bg-purple-600 text-white"
-                                                : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                                        className={`py-3 px-4 font-display font-bold uppercase tracking-widest text-sm transition-none border ${selectedAmount === preset.lamports && !customAmount
+                                                ? "bg-[var(--color-term-green)] text-black border-[var(--color-term-green)]"
+                                                : "bg-black text-[var(--color-term-green)] border-[var(--color-term-dim)] hover:border-[var(--color-term-green)]"
                                             }`}
                                     >
                                         {preset.label}
@@ -115,7 +113,7 @@ export function TipModal({ isOpen, onClose, recipientAddress, recipientLabel }: 
 
                             {/* Custom amount */}
                             <div>
-                                <label className="block text-sm text-gray-400 mb-2">Or enter custom amount:</label>
+                                <label className="block text-xs text-[var(--color-term-dim)] mb-2 uppercase tracking-widest font-display">Custom Amount:</label>
                                 <div className="relative">
                                     <input
                                         type="number"
@@ -124,41 +122,41 @@ export function TipModal({ isOpen, onClose, recipientAddress, recipientLabel }: 
                                         placeholder="0.00"
                                         value={customAmount}
                                         onChange={(e) => handleCustomAmountChange(e.target.value)}
-                                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                        className="w-full px-4 py-3 bg-black border border-[var(--color-term-green)] text-[var(--color-term-green)] placeholder-[var(--color-term-dim)] focus:outline-none rounded-none font-display text-lg"
                                     />
-                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">SOL</span>
+                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-term-green)] font-display">SOL</span>
                                 </div>
                             </div>
 
                             <button
                                 onClick={handleConfirm}
                                 disabled={selectedAmount <= 0}
-                                className="w-full py-3 px-4 bg-purple-600 hover:bg-purple-500 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-colors"
+                                className="w-full py-3 px-4 bg-[var(--color-term-green)] hover:bg-white disabled:bg-[var(--color-term-dim)] disabled:cursor-not-allowed text-black font-display font-bold uppercase tracking-widest transition-none"
                             >
-                                Continue
+                                [ PROCEED ]
                             </button>
                         </div>
                     )}
 
                     {step === "confirm" && (
                         <div className="space-y-6">
-                            <div className="text-center">
-                                <p className="text-3xl font-bold text-white mb-2">
+                            <div className="text-center border-b border-[var(--color-term-dim)] border-dashed pb-4">
+                                <p className="text-3xl font-display font-bold text-[var(--color-term-green)] mb-2">
                                     {lamportsToSol(selectedAmount)} SOL
                                 </p>
-                                <p className="text-gray-400">
-                                    to {displayRecipient}
+                                <p className="text-[var(--color-term-dim)] text-xs uppercase tracking-widest">
+                                    &gt;&gt; {displayRecipient}
                                 </p>
                             </div>
 
-                            <div className="bg-gray-800 rounded-xl p-4">
+                            <div className="bg-[var(--color-term-dim)]/10 p-4 border border-[var(--color-term-dim)]">
                                 <div className="flex justify-between text-sm mb-2">
-                                    <span className="text-gray-400">Amount</span>
-                                    <span className="text-white">{lamportsToSol(selectedAmount)} SOL</span>
+                                    <span className="text-[var(--color-term-dim)] uppercase tracking-wider font-display">Amount</span>
+                                    <span className="text-[var(--color-term-green)] font-display">{lamportsToSol(selectedAmount)} SOL</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-gray-400">Network fee</span>
-                                    <span className="text-white">~0.000005 SOL</span>
+                                    <span className="text-[var(--color-term-dim)] uppercase tracking-wider font-display">Network Fee</span>
+                                    <span className="text-[var(--color-term-green)] font-display">~0.000005 SOL</span>
                                 </div>
                             </div>
 
@@ -166,25 +164,19 @@ export function TipModal({ isOpen, onClose, recipientAddress, recipientLabel }: 
                                 <button
                                     onClick={handleBack}
                                     disabled={isLoading}
-                                    className="flex-1 py-3 px-4 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-xl transition-colors"
+                                    className="flex-1 py-3 px-4 bg-black border border-[var(--color-term-dim)] hover:border-[var(--color-term-green)] text-[var(--color-term-green)] font-display font-bold uppercase tracking-widest transition-none"
                                 >
-                                    Back
+                                    [ BACK ]
                                 </button>
                                 <button
                                     onClick={handleSendTip}
                                     disabled={isLoading}
-                                    className="flex-1 py-3 px-4 bg-purple-600 hover:bg-purple-500 disabled:bg-purple-800 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
+                                    className="flex-1 py-3 px-4 bg-[var(--color-term-green)] hover:bg-white disabled:bg-[var(--color-term-dim)] text-black font-display font-bold uppercase tracking-widest transition-none"
                                 >
                                     {isLoading ? (
-                                        <>
-                                            <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                            </svg>
-                                            Sending...
-                                        </>
+                                        "PROCESSING..."
                                     ) : (
-                                        "Confirm & Send"
+                                        "[ CONFIRM ]"
                                     )}
                                 </button>
                             </div>
@@ -193,16 +185,14 @@ export function TipModal({ isOpen, onClose, recipientAddress, recipientLabel }: 
 
                     {step === "success" && (
                         <div className="space-y-6 text-center">
-                            <div className="w-16 h-16 mx-auto bg-green-500/20 rounded-full flex items-center justify-center">
-                                <svg className="w-8 h-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
+                            <div className="py-4">
+                                <span className="text-[var(--color-term-green)] text-4xl font-display">[ SUCCESS ]</span>
                             </div>
 
                             <div>
-                                <p className="text-xl font-semibold text-white mb-1">Tip sent successfully!</p>
-                                <p className="text-gray-400">
-                                    {lamportsToSol(selectedAmount)} SOL to {displayRecipient}
+                                <p className="text-lg font-display text-[var(--color-term-green)] mb-1">TRANSFER COMPLETE</p>
+                                <p className="text-[var(--color-term-dim)] text-sm font-body">
+                                    {lamportsToSol(selectedAmount)} SOL &gt;&gt; {displayRecipient}
                                 </p>
                             </div>
 
@@ -210,45 +200,43 @@ export function TipModal({ isOpen, onClose, recipientAddress, recipientLabel }: 
                                 href={`https://explorer.solana.com/tx/${txSignature}?cluster=devnet`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-block text-purple-400 hover:text-purple-300 text-sm underline"
+                                className="inline-block text-[var(--color-term-green)] hover:text-white text-xs underline font-display tracking-widest"
                             >
-                                View on Explorer ↗
+                                VIEW_ON_EXPLORER
                             </a>
 
                             <button
                                 onClick={handleClose}
-                                className="w-full py-3 px-4 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-xl transition-colors"
+                                className="w-full py-3 px-4 bg-black border border-[var(--color-term-green)] text-[var(--color-term-green)] hover:bg-[var(--color-term-green)] hover:text-black font-display font-bold uppercase tracking-widest transition-none"
                             >
-                                Done
+                                [ CLOSE_TERMINAL ]
                             </button>
                         </div>
                     )}
 
                     {step === "error" && (
                         <div className="space-y-6 text-center">
-                            <div className="w-16 h-16 mx-auto bg-red-500/20 rounded-full flex items-center justify-center">
-                                <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
+                            <div className="py-4">
+                                <span className="text-[var(--color-term-alert)] text-4xl font-display">[ FAILED ]</span>
                             </div>
 
                             <div>
-                                <p className="text-xl font-semibold text-white mb-2">Transaction Failed</p>
-                                <p className="text-red-400 text-sm">{error}</p>
+                                <p className="text-lg font-display text-[var(--color-term-alert)] mb-2">TRANSACTION ABORTED</p>
+                                <p className="text-[var(--color-term-dim)] text-xs font-body break-all bg-[var(--color-term-dim)]/10 p-2 border border-[var(--color-term-dim)]">{error}</p>
                             </div>
 
                             <div className="flex gap-3">
                                 <button
                                     onClick={handleBack}
-                                    className="flex-1 py-3 px-4 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-xl transition-colors"
+                                    className="flex-1 py-3 px-4 bg-black border border-[var(--color-term-green)] text-[var(--color-term-green)] hover:bg-[var(--color-term-green)] hover:text-black font-display font-bold uppercase tracking-widest transition-none"
                                 >
-                                    Try Again
+                                    [ RETRY ]
                                 </button>
                                 <button
                                     onClick={handleClose}
-                                    className="flex-1 py-3 px-4 bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium rounded-xl transition-colors"
+                                    className="flex-1 py-3 px-4 bg-black border border-[var(--color-term-dim)] text-[var(--color-term-dim)] hover:text-white font-display font-bold uppercase tracking-widest transition-none"
                                 >
-                                    Cancel
+                                    [ ABORT ]
                                 </button>
                             </div>
                         </div>

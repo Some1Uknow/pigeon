@@ -3,37 +3,40 @@ import FeatureCard from "./FeatureCard";
 const features = [
     {
         icon: "lock",
-        title: "Decentralized & Secure",
-        description: "End-to-end encrypted messaging with no central servers. Your data is your own.",
-        gradient: "bg-linear-to-br from-violet-600/10 to-purple-600/10",
+        title: "Private_by_Default",
+        description: "Your messages are encrypted before they ever leave your device.",
     },
     {
         icon: "bolt",
-        title: "Lightning Fast",
-        description: "Leveraging the high-speed Solana network for instant message delivery.",
-        gradient: "bg-linear-to-br from-blue-600/10 to-indigo-600/10",
+        title: "Fast_on_Solana",
+        description: "Messages land quickly using Solana's high-speed network.",
     },
     {
         icon: "groups",
-        title: "Community Owned",
-        description: "A protocol governed by its users, ensuring a censorship-resistant platform.",
-        gradient: "bg-linear-to-br from-purple-600/10 to-pink-600/10",
+        title: "Open_Source",
+        description: "Open-source protocol anyone can audit or build on.",
     },
 ];
 
 export default function FeaturesSection() {
     return (
-        <div className="space-y-12">
-            <div className="text-center space-y-4 fade-in-up stagger-2">
-                <h2 className="text-white text-3xl md:text-4xl font-bold tracking-[-0.02em]">
-                    Why Choose Pigeon?
-                </h2>
-                <p className="text-gray-400 text-base md:text-lg max-w-2xl mx-auto">
-                    Built on cutting-edge technology to ensure your conversations stay private and fast.
+        <div className="space-y-16 py-10 border-t border-b border-[var(--color-term-dim)] border-dashed">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-end fade-in-up stagger-2">
+                <div className="md:col-span-6">
+                    <div className="text-[var(--color-term-dim)] text-sm font-body mb-2">
+                        System_Check: <span className="text-[var(--color-term-green)]">OK</span>
+                    </div>
+                    <h2 className="text-[var(--color-term-green)] text-3xl md:text-4xl font-display font-semibold tracking-widest uppercase">
+                        WHY_PIGEON?
+                    </h2>
+                </div>
+                <p className="md:col-span-6 text-[var(--color-term-green)] opacity-80 text-base md:text-lg md:text-right font-body">
+                    &gt; Executing protocol analysis... <br/>
+                    &gt; Result: Secure, decentralized messaging.
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 fade-in-up stagger-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 fade-in-up stagger-3">
                 {features.map((feature, index) => (
                     <FeatureCard key={index} {...feature} />
                 ))}

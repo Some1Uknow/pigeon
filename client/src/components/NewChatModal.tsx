@@ -24,42 +24,48 @@ export default function NewChatModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center">
-      <div className="bg-[#121212] border border-white/10 rounded-2xl p-6 w-96 shadow-xl">
-        <h2 className="text-xl font-semibold mb-4">Start a new chat</h2>
-        <form onSubmit={handleSubmit}>
-          <input
-            name="address"
-            placeholder="Receiver wallet address"
-            required
-            className="w-full bg-[#1a1a1a]/70 border border-white/10 rounded-xl px-4 py-2 outline-none focus:border-blue-500/40"
-          />
-          <textarea
-            name="message"
-            placeholder="Initial message..."
-            className="w-full bg-[#1a1a1a]/70 border border-white/10 rounded-xl px-4 py-2 mt-3 h-24 outline-none focus:border-blue-500/40"
-          />
-          <div className="flex justify-end gap-2 mt-4">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-none flex items-center justify-center z-50">
+      <div className="bg-black border border-[var(--color-term-green)] p-1 w-96 shadow-[4px_4px_0px_var(--color-term-dim)]">
+        <div className="bg-[var(--color-term-green)] text-black px-4 py-2 font-display font-bold uppercase tracking-widest text-lg mb-4 flex justify-between items-center">
+          <span>INIT_SESSION</span>
+          <button onClick={onClose} className="hover:text-white">X</button>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          <div className="space-y-2">
+            <label className="text-[var(--color-term-green)] text-xs font-display uppercase tracking-widest">Target Address</label>
+            <input
+              name="address"
+              placeholder="ENTER_WALLET_ADDRESS"
+              required
+              className="w-full bg-black border border-[var(--color-term-dim)] rounded-none px-4 py-3 outline-none text-[var(--color-term-green)] placeholder:text-[var(--color-term-dim)] font-body focus:border-[var(--color-term-green)]"
+            />
+          </div>
+          
+          <div className="space-y-2">
+             <label className="text-[var(--color-term-green)] text-xs font-display uppercase tracking-widest">Initial Payload</label>
+            <textarea
+              name="message"
+              placeholder="ENTER_MESSAGE..."
+              className="w-full bg-black border border-[var(--color-term-dim)] rounded-none px-4 py-3 h-24 outline-none text-[var(--color-term-green)] placeholder:text-[var(--color-term-dim)] font-body focus:border-[var(--color-term-green)] resize-none"
+            />
+          </div>
+
+          <div className="flex justify-end gap-4 mt-6">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm disabled:opacity-50"
+              className="px-4 py-2 border border-[var(--color-term-dim)] text-[var(--color-term-dim)] hover:border-[var(--color-term-green)] hover:text-[var(--color-term-green)] font-display uppercase tracking-widest text-sm disabled:opacity-50"
             >
-              Cancel
+              [ CANCEL ]
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm text-white disabled:opacity-50 min-w-20"
+              className="px-6 py-2 bg-[var(--color-term-green)] text-black font-display font-bold uppercase tracking-widest text-sm hover:bg-white disabled:opacity-50 min-w-24"
             >
-              {loading ? (
-                <span className="flex items-center gap-1">
-                  <span className="animate-pulse">⏳</span> Starting
-                </span>
-              ) : (
-                "Start"
-              )}
+              {loading ? "INIT..." : "[ START ]"}
             </button>
           </div>
         </form>

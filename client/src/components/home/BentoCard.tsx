@@ -2,7 +2,6 @@ interface BentoCardProps {
   title: string;
   description: string;
   icon?: string;
-  gradient: string;
   size?: "small" | "medium" | "large";
   children?: React.ReactNode;
 }
@@ -11,7 +10,6 @@ export default function BentoCard({
   title,
   description,
   icon,
-  gradient,
   size = "medium",
   children,
 }: BentoCardProps) {
@@ -23,29 +21,23 @@ export default function BentoCard({
 
   return (
     <div
-      className={`group relative overflow-hidden rounded-3xl border border-white/10 p-8 transition-all duration-500 hover:border-white/20 ${sizeClasses[size]} bento-card`}
+      className={`group flex flex-col gap-4 p-4 ${sizeClasses[size]}`}
     >
-      {/* Gradient background */}
-      <div className={`absolute inset-0 opacity-20 group-hover:opacity-30 transition-opacity duration-500 ${gradient}`} />
-      
-      {/* Glowing border effect */}
-      <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 glow-border" />
-
       {/* Content */}
-      <div className="relative z-10 flex flex-col h-full">
+      <div className="flex flex-col h-full">
         {icon && (
-          <div className="mb-6 flex items-center justify-center w-14 h-14 rounded-2xl bg-white/5 border border-white/10 group-hover:border-white/20 group-hover:scale-110 transition-all duration-300">
-            <span className="material-symbols-outlined text-violet-400 text-3xl">
+          <div className="mb-4">
+            <span className="material-symbols-outlined text-[var(--color-term-green)] text-3xl">
               {icon}
             </span>
           </div>
         )}
 
-        <div className="space-y-3 grow">
-          <h3 className="text-white text-2xl font-bold leading-tight tracking-[-0.02em]">
+        <div className="space-y-2 grow">
+          <h3 className="text-[var(--color-term-green)] text-2xl font-display font-semibold leading-tight tracking-widest uppercase">
             {title}
           </h3>
-          <p className="text-gray-400 text-sm leading-relaxed">
+          <p className="text-[var(--color-term-green)] opacity-80 text-sm leading-relaxed font-body border-l border-[var(--color-term-dim)] pl-4">
             {description}
           </p>
         </div>

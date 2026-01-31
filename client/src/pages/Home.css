@@ -1,92 +1,112 @@
-/* Linear-inspired animations and effects */
+/* Terminal Retro Effects */
+
 .glow-effect {
-  box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Renamed concept: now just a hard hover state */
+  border: 1px solid var(--color-term-green);
+  box-shadow: none;
+  transition: none;
 }
 
 .glow-effect:hover {
-  box-shadow: 0 0 30px rgba(139, 92, 246, 0.5);
-  transform: translateY(-2px);
+  background-color: var(--color-term-green);
+  color: #000;
+  box-shadow: 4px 4px 0 var(--color-term-dim);
+  transform: translate(-2px, -2px);
 }
 
-/* Glowing border for bento cards */
-.glow-border {
-  box-shadow: 
-    inset 0 0 20px rgba(139, 92, 246, 0.2),
-    0 0 30px rgba(139, 92, 246, 0.3);
+.card-surface {
+  background: #000;
+  border: 1px solid var(--color-term-dim);
+  transition: none;
+}
+
+.card-surface:hover {
+  border-color: var(--color-term-green);
+  background: #000;
+  transform: none;
 }
 
 .bento-card {
-  background: rgba(255, 255, 255, 0.02);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
+  background: #000;
+  border: 1px solid var(--color-term-dim);
+  position: relative;
+}
+
+.bento-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: var(--color-term-green);
+  opacity: 0;
+  transition: opacity 0.2s;
 }
 
 .bento-card:hover {
-  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--color-term-green);
 }
 
-.glassmorphism-card {
-  background: rgba(255, 255, 255, 0.03);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.bento-card:hover::before {
+  opacity: 1;
 }
 
-.glassmorphism-card:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.12);
-  transform: translateY(-4px);
+/* Animations */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
-.bg-gradient-animate {
-  background-size: 200% 200%;
-  animation: gradient-animation 8s ease infinite;
-}
-
-@keyframes gradient-animation {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+.cursor-blink::after {
+  content: "█";
+  margin-left: 2px;
+  animation: blink 1s step-end infinite;
+  color: var(--color-term-green);
 }
 
 .holographic-pigeon {
-  filter: drop-shadow(0 0 30px rgba(139, 92, 246, 0.4));
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.holographic-pigeon:hover {
-  transform: scale(1.05);
+  /* Pixelate effect */
+  image-rendering: pixelated;
+  filter: grayscale(100%) brightness(0.8) sepia(100%) hue-rotate(50deg) saturate(300%) contrast(1.2);
 }
 
 .subtle-grid {
   background-image:
-    linear-gradient(rgba(139, 92, 246, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(139, 92, 246, 0.03) 1px, transparent 1px);
-  background-size: 80px 80px;
+    linear-gradient(var(--color-term-dim) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-term-dim) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.3;
 }
 
 .radial-glow {
-  background-image: 
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(139, 92, 246, 0.15), transparent),
-    radial-gradient(ellipse 60% 80% at 0% 50%, rgba(59, 130, 246, 0.08), transparent),
-    radial-gradient(ellipse 60% 80% at 100% 50%, rgba(168, 85, 247, 0.08), transparent);
+  /* Removed glow, replaced with vignette */
+  background: radial-gradient(circle, transparent 60%, #000 100%);
 }
 
-/* Smooth fade-in animation */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.scanlines {
+  /* Kept global scanlines */
+}
+
+.section-frame {
+  position: relative;
+  padding: 4rem 0;
+  border-top: 1px dashed var(--color-term-dim);
+  border-bottom: 1px dashed var(--color-term-dim);
+}
+
+.band-surface {
+  position: relative;
+  border: 1px solid var(--color-term-green);
+  background: #000;
+  padding: 4rem;
+}
+
+/* Hard fade in */
+@keyframes appear {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .fade-in-up {
-  animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: appear 0.5s steps(5) forwards;
 }
 
 .stagger-1 { animation-delay: 0.1s; opacity: 0; }
@@ -95,28 +115,50 @@
 
 /* Tech stack badge styles */
 .tech-badge {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #000;
+  border: 1px solid var(--color-term-dim);
+  color: var(--color-term-dim);
+  font-family: var(--font-display);
 }
 
 .tech-badge:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(139, 92, 246, 0.5);
-  transform: translateY(-2px);
-}
-
-/* Stat card pulse */
-@keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
-  }
-  50% {
-    box-shadow: 0 0 40px rgba(139, 92, 246, 0.4);
-  }
+  border-color: var(--color-term-green);
+  color: var(--color-term-green);
+  background: #000;
 }
 
 .stat-highlight {
-  animation: pulse-glow 3s ease-in-out infinite;
+  text-shadow: 0 0 5px var(--color-term-green);
 }
 
+.logo-monochrome {
+  filter: grayscale(100%) brightness(0) invert(1) sepia(100%) saturate(1000%) hue-rotate(80deg);
+  opacity: 0.7;
+}
+
+/* Button overrides */
+.btn-primary {
+  background: var(--color-term-green);
+  color: #000;
+  border: 1px solid var(--color-term-green);
+  text-transform: uppercase;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+}
+
+.btn-primary:hover {
+  background: #000;
+  color: var(--color-term-green);
+  box-shadow: 4px 4px 0 var(--color-term-dim);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-term-green);
+  border: 1px solid var(--color-term-green);
+}
+
+.btn-ghost:hover {
+  background: var(--color-term-dim);
+  color: var(--color-term-green);
+}

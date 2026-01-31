@@ -42,7 +42,7 @@ export default function Chats() {
   };
 
   return (
-    <div className="flex min-h-screen bg-linear-to-br from-[#050505] via-[#0a0a0a] to-[#141414] text-gray-100">
+    <div className="flex min-h-screen bg-[var(--color-term-bg)] text-[var(--color-term-green)] font-body overflow-hidden">
       <div
         style={{ width: sidebar.width }}
         className={`shrink-0 ${sidebar.isResizing ? "" : "transition-[width] duration-150 ease-out"}`}
@@ -55,13 +55,16 @@ export default function Chats() {
         />
       </div>
 
+      {/* Resizer Handle */}
       <div
         onMouseDown={sidebar.startResizing}
-        className="w-3 cursor-col-resize flex items-center justify-center z-10"
-        title="Drag to resize"
-      >
-        <div className="w-0.5 h-10 bg-white/10 rounded" />
-      </div>
+        className="w-1.5 cursor-col-resize z-50 bg-[var(--color-term-dim)] hover:bg-[var(--color-term-green)] transition-colors flex flex-col justify-center items-center gap-1 opacity-80 hover:opacity-100"
+        title="RESIZE_PANEL"
+        style={{
+           backgroundImage: "linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.5) 50%)",
+           backgroundSize: "100% 4px"
+        }}
+      />
 
       <ChatWindow
         activeChat={chat.activeChat}
@@ -82,8 +85,8 @@ export default function Chats() {
       />
 
       {error && (
-        <div className="fixed bottom-4 right-4 bg-red-600/90 text-white px-4 py-2 rounded-lg shadow">
-          {error}
+        <div className="fixed bottom-4 right-4 bg-black text-[var(--color-term-alert)] px-4 py-2 border border-[var(--color-term-alert)] shadow-[4px_4px_0px_var(--color-term-alert)] font-display uppercase tracking-widest text-sm z-50">
+          [ ERROR ] : {error}
         </div>
       )}
     </div>

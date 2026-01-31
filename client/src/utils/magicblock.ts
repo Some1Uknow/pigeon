@@ -1,14 +1,9 @@
 import { PublicKey, Connection } from "@solana/web3.js";
 
 /**
- * MagicBlock Private Ephemeral Rollups Configuration
- * 
- * Note: Private SPL Token API is currently under testing.
- * This module provides the foundation for private transfers
- * once the API is publicly available.
+ * MagicBlock Private Ephemeral Rollups Configuration for future Roadmap
  */
 
-// TEE Endpoint - for authenticated private state access
 export const TEE_ENDPOINT = "https://tee.magicblock.app";
 
 // Ephemeral Rollup validators

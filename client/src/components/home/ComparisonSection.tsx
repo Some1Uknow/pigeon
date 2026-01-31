@@ -2,50 +2,49 @@ import ComparisonCard from "./ComparisonCard";
 
 export default function ComparisonSection() {
     return (
-        <div className="space-y-12">
-            <div className="text-center space-y-4">
-                <h2 className="text-white text-3xl md:text-4xl font-bold tracking-[-0.02em]">
-                    How Pigeon Compares
+        <div className="space-y-16 py-10 border-t border-[var(--color-term-dim)] border-dashed">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
+                <h2 className="md:col-span-6 text-[var(--color-term-green)] text-3xl md:text-4xl font-display font-semibold tracking-widest uppercase">
+                    COMPETITOR_ANALYSIS
                 </h2>
-                <p className="text-gray-400 text-base md:text-lg max-w-2xl mx-auto">
-                    See how we stack up against traditional messaging platforms.
+                <p className="md:col-span-6 text-[var(--color-term-green)] opacity-80 text-base md:text-lg md:text-right font-body">
+                    &gt; Benchmarking against centralized entities...
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 <ComparisonCard
-                    title="WhatsApp"
-                    subtitle="Centralized messenger by Meta"
+                    title="WHATSAPP"
+                    subtitle="Centralized_Entity"
                     icon="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
-                    gradient="bg-linear-to-br from-green-600/20 to-emerald-600/20"
                     features={[
                         {
-                            feature: "E2E Encryption",
+                            feature: "E2E_ENCRYPTION",
                             pigeon: true,
                             competitor: true,
                         },
                         {
-                            feature: "Decentralized",
+                            feature: "DECENTRALIZED",
                             pigeon: true,
                             competitor: false,
                         },
                         {
-                            feature: "No Metadata Collection",
+                            feature: "NO_PHONE_REQ",
                             pigeon: true,
                             competitor: false,
                         },
                         {
-                            feature: "Open Source",
+                            feature: "OPEN_SOURCE",
                             pigeon: true,
-                            competitor: "Partial",
+                            competitor: "PARTIAL",
                         },
                         {
-                            feature: "No Phone Number",
+                            feature: "NO_AD_TRACKING",
                             pigeon: true,
                             competitor: false,
                         },
                         {
-                            feature: "Censorship Resistant",
+                            feature: "CENSORSHIP_RES",
                             pigeon: true,
                             competitor: false,
                         },
@@ -53,38 +52,37 @@ export default function ComparisonSection() {
                 />
 
                 <ComparisonCard
-                    title="Telegram"
-                    subtitle="Cloud-based messenger"
+                    title="TELEGRAM"
+                    subtitle="Cloud_Entity"
                     icon="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg"
-                    gradient="bg-linear-to-br from-blue-600/20 to-sky-600/20"
                     features={[
                         {
-                            feature: "E2E Encryption",
+                            feature: "E2E_ENCRYPTION",
                             pigeon: true,
-                            competitor: "Secret Chats Only",
+                            competitor: "SECRET_CHATS_ONLY",
                         },
                         {
-                            feature: "Decentralized",
-                            pigeon: true,
-                            competitor: false,
-                        },
-                        {
-                            feature: "No Metadata Collection",
+                            feature: "DECENTRALIZED",
                             pigeon: true,
                             competitor: false,
                         },
                         {
-                            feature: "Open Source",
-                            pigeon: true,
-                            competitor: "Client Only",
-                        },
-                        {
-                            feature: "No Phone Number",
+                            feature: "NO_PHONE_REQ",
                             pigeon: true,
                             competitor: false,
                         },
                         {
-                            feature: "Censorship Resistant",
+                            feature: "OPEN_SOURCE",
+                            pigeon: true,
+                            competitor: "CLIENT_ONLY",
+                        },
+                        {
+                            feature: "NO_AD_TRACKING",
+                            pigeon: true,
+                            competitor: false,
+                        },
+                        {
+                            feature: "CENSORSHIP_RES",
                             pigeon: true,
                             competitor: false,
                         },

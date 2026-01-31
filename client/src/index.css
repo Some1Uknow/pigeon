@@ -1,1 +1,92 @@
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&family=VT323&display=swap");
 @import "tailwindcss";
+
+:root {
+  --color-term-bg: #050505;
+  --color-term-green: #33ff33;
+  --color-term-dim: #1a4d1a;
+  --color-term-alert: #ff3333;
+  
+  --font-display: "VT323", monospace;
+  --font-body: "Fira Code", monospace;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-term-bg);
+  color: var(--color-term-green);
+  overflow-x: hidden;
+  /* Custom Retro Cursor: Green Crosshair */
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2333ff33' stroke-width='1.5'><line x1='12' y1='2' x2='12' y2='22'/><line x1='2' y1='12' x2='22' y2='12'/></svg>") 12 12, crosshair;
+  
+  /* CRT Scanline background effect */
+  background-image: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.25) 50%
+  ), linear-gradient(
+    90deg, 
+    rgba(255, 0, 0, 0.06), 
+    rgba(0, 255, 0, 0.02), 
+    rgba(0, 0, 255, 0.06)
+  );
+  background-size: 100% 2px, 3px 100%;
+}
+
+/* Force pointer on interactables */
+button, a, .cursor-pointer {
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='%2333ff33' stroke='%23050505' stroke-width='1.5'><rect x='2' y='2' width='12' height='12' /></svg>") 2 2, pointer !important;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+/* Hard edges only */
+* {
+  border-radius: 0 !important;
+}
+
+/* Terminal Scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+  background: var(--color-term-bg);
+  border-left: 1px solid var(--color-term-dim);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-term-dim);
+  border: 1px solid var(--color-term-green);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-term-green);
+}
+
+/* Ensure wallet-adapter dropdowns/modals are interactable above app overlays. */
+.wallet-adapter-dropdown,
+.wallet-adapter-dropdown-list,
+.wallet-adapter-modal-wrapper {
+  z-index: 9999 !important;
+  font-family: var(--font-body) !important;
+  background: #000 !important;
+  border: 1px solid var(--color-term-green) !important;
+  color: var(--color-term-green) !important;
+}
+
+.wallet-adapter-button {
+  font-family: var(--font-display) !important;
+  background-color: transparent !important;
+  border: 1px solid var(--color-term-green) !important;
+  color: var(--color-term-green) !important;
+  height: 48px !important;
+}
+
+.wallet-adapter-button:hover {
+  background-color: var(--color-term-green) !important;
+  color: black !important;
+}

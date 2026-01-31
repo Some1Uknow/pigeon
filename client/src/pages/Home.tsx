@@ -21,23 +21,47 @@ export default function Home() {
   }, [connected, navigate]);
 
   return (
-    <div className="relative min-h-screen w-full overflow-x-hidden font-display bg-[#0A0A1A] text-[#E0E0E0]">
+    <div className="relative min-h-screen w-full overflow-x-hidden font-body bg-[var(--color-term-bg)] text-[var(--color-term-green)]">
       <div className="absolute inset-0 z-0 radial-glow" />
       <div className="absolute inset-0 z-0 subtle-grid" />
+      <div className="absolute inset-0 z-0 scanlines" />
 
       <div className="relative z-10 flex h-full grow flex-col">
-        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
           <Header />
 
-          <main className="py-16 md:py-24 space-y-32">
-            <Hero />
-            <FeaturesSection />
-            <BentoGridSection />
-            <ComparisonSection />
-            <TechStackSection />
-            <SecuritySection />
-            <StatsSection />
-            <CTASection />
+          <main className="py-20 md:py-32 space-y-40 md:space-y-52">
+            <section className="pt-10">
+              <Hero />
+            </section>
+
+            <section>
+              <StatsSection />
+            </section>
+
+            <section id="features">
+              <FeaturesSection />
+            </section>
+
+            <section id="privacy">
+              <BentoGridSection />
+            </section>
+
+            <section id="security">
+              <SecuritySection />
+            </section>
+
+            <section id="comparison">
+              <ComparisonSection />
+            </section>
+            
+            <section id="tech">
+              <TechStackSection />
+            </section>
+
+            <section id="cta" className="pb-20">
+              <CTASection />
+            </section>
           </main>
         </div>
       </div>
