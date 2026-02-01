@@ -28,6 +28,10 @@ Pigeon is a pure protocol connecting two cryptographic keypairs. It uses the Sol
 *   **Encryption:** X25519 (ECDH) + ChaCha20-Poly1305 (AEAD)
 *   **Storage:** On-chain rolling buffer (last 10 messages).
 
+### Architecture Diagram
+
+![Pigeon high-level architecture](client/public/pigeon-flow.png)
+
 ### The Roadmap
 
 We are just getting started. The future of communication is decentralized.
