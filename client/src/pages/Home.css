@@ -132,8 +132,9 @@
 }
 
 .logo-monochrome {
-  filter: grayscale(100%) brightness(0) invert(1) sepia(100%) saturate(1000%) hue-rotate(80deg);
-  opacity: 0.7;
+  /* Just remove color, keep contrast so details (like the plane in Telegram) are visible */
+  filter: grayscale(100%) brightness(1.2);
+  opacity: 0.9;
 }
 
 /* Button overrides */

@@ -28,12 +28,12 @@ export default function TechStackSection() {
                 {infraStack.map((item, index) => (
                     <div
                         key={index}
-                        className="flex items-center gap-4 group opacity-70 hover:opacity-100 transition-opacity"
+                        className="flex flex-col items-center gap-4 group opacity-70 hover:opacity-100 transition-opacity text-center"
                     >
                         <img
                             src={item.logo}
                             alt={item.name}
-                            className="h-10 w-auto object-contain logo-monochrome"
+                            className="h-12 w-auto object-contain logo-monochrome"
                         />
                         <span className="text-[var(--color-term-green)] font-semibold text-lg tracking-widest uppercase">
                             {item.name}
