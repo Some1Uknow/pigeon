@@ -3,47 +3,46 @@ import pigeon from "../../assets/pigeon.png";
 
 export default function Header() {
   return (
-    <header className="flex items-center justify-between whitespace-nowrap py-6 border-b border-[var(--color-term-dim)] bg-[var(--color-term-bg)] sticky top-0 z-50">
-      <div className="flex items-center gap-4">
-        <div className="w-10 h-10 border border-[var(--color-term-green)] p-1">
-          <img src={pigeon} alt="Pigeon" className="w-full h-full object-contain holographic-pigeon" />
+    <header className="fixed top-0 z-50 flex h-20 w-full items-center justify-between border-b border-[rgba(119,117,117,0.16)] bg-[rgba(14,14,14,0.56)] px-6 shadow-2xl backdrop-blur-xl md:px-12">
+      <a href="/" className="flex min-h-10 items-center gap-4" aria-label="Pigeon Protocol home">
+        <div className="flex h-10 w-10 items-center justify-center rounded-md border border-[rgba(189,157,255,0.38)] bg-[var(--color-surface-low)] p-1.5">
+          <img src={pigeon} alt="" className="h-full w-full object-contain holographic-pigeon" />
         </div>
-        <h2 className="text-[var(--color-term-green)] text-xl font-display font-semibold leading-tight tracking-widest uppercase">
+        <h2 className="font-display text-xl font-black uppercase leading-tight text-[var(--color-primary)]">
           PIGEON_PROTOCOL
         </h2>
-      </div>
+      </a>
 
-      <div className="hidden md:flex flex-1 justify-end gap-8">
-        <div className="flex items-center gap-9 font-body text-sm">
+      <div className="flex flex-1 justify-end gap-4 md:gap-8">
+        <nav className="hidden items-center gap-8 font-display text-sm uppercase tracking-[0.03em] md:flex" aria-label="Primary navigation">
           <a
-            className="text-[var(--color-term-dim)] hover:text-[var(--color-term-green)] hover:underline decoration-1 underline-offset-4"
+            className="min-h-10 content-center text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text)]"
             href="#features"
           >
-            ./features
+            Terminal
           </a>
           <a
-            className="text-[var(--color-term-dim)] hover:text-[var(--color-term-green)] hover:underline decoration-1 underline-offset-4"
-            href="#comparison"
+            className="min-h-10 content-center text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text)]"
+            href="#privacy"
           >
-            ./roadmap
+            Nodes
           </a>
           <a
-            className="text-[var(--color-term-dim)] hover:text-[var(--color-term-green)] hover:underline decoration-1 underline-offset-4"
+            className="min-h-10 content-center text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text)]"
             href="#tech"
           >
-            ./docs
+            Bridge
           </a>
           <a
-            className="text-[var(--color-term-dim)] hover:text-[var(--color-term-green)] transition-none"
+            className="min-h-10 content-center text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text)]"
             href="https://github.com/some1uknow/pigeon"
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="GitHub Repository"
           >
-            <span className="font-display">[ GITHUB ]</span>
+            Docs
           </a>
-        </div>
-        <WalletMultiButton className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden h-10 px-5 text-sm font-display leading-normal tracking-widest uppercase btn-primary rounded-none">
+        </nav>
+        <WalletMultiButton className="btn-primary flex h-11 min-w-[7.5rem] items-center justify-center overflow-hidden px-4 text-xs md:min-w-[9rem] md:px-5 md:text-sm">
           <span className="truncate">CONNECT_WALLET</span>
         </WalletMultiButton>
       </div>

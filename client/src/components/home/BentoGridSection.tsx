@@ -35,21 +35,29 @@ const bentoFeatures = [
 
 export default function BentoGridSection() {
     return (
-        <div className="space-y-16 py-10 border-t border-[var(--color-term-dim)] border-dashed">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
-                <h2 className="md:col-span-6 text-[var(--color-term-green)] text-3xl md:text-4xl font-display font-semibold tracking-widest uppercase">
-                    PRIVACY_ARCHITECTURE
-                </h2>
-                <p className="md:col-span-6 text-[var(--color-term-green)] opacity-80 text-base md:text-lg md:text-right font-body">
-                    &gt; Analyzing security protocols... <br/>
-                    &gt; All systems green.
-                </p>
-            </div>
+        <div className="panel-surface relative overflow-hidden rounded-xl p-6 md:p-10">
+            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:32px_32px]" />
+            <div className="relative z-10 space-y-12">
+                <div className="grid grid-cols-1 items-end gap-6 md:grid-cols-12">
+                    <div className="md:col-span-6">
+                        <div className="home-section-label">
+                            <span className="material-symbols-outlined" aria-hidden="true">schema</span>
+                            PRIVACY_ARCHITECTURE
+                        </div>
+                        <h2 className="mt-6 font-display text-3xl font-bold uppercase text-[var(--color-text)] md:text-4xl">
+                            Built from cryptographic modules, not policy promises.
+                        </h2>
+                    </div>
+                    <p className="text-base leading-relaxed text-[var(--color-text-muted)] md:col-span-6 md:text-right md:text-lg">
+                        Wallet identity, local encryption, and on-chain coordination keep the protocol verifiable.
+                    </p>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {bentoFeatures.map((feature, index) => (
-                    <BentoCard key={index} {...feature} />
-                ))}
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    {bentoFeatures.map((feature, index) => (
+                        <BentoCard key={index} {...feature} />
+                    ))}
+                </div>
             </div>
         </div>
     );

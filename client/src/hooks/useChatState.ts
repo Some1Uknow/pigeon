@@ -7,7 +7,7 @@ import { useEncryption } from "../contexts/EncryptionContext";
 import { useChatOperations, useMessageOperations } from "../hooks";
 import type { Chat } from "../types";
 
-interface ChatState {
+export interface ChatState {
     chats: Chat[];
     activeChat: Chat | null;
     loading: boolean;

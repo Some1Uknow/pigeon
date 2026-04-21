@@ -6,16 +6,16 @@ interface FeatureCardProps {
 
 export default function FeatureCard({ icon, title, description }: FeatureCardProps) {
   return (
-    <div className="flex flex-col gap-6 p-4">
-      <div className="flex items-center justify-start w-12 h-12">
-        <span className="material-symbols-outlined text-[var(--color-term-green)] text-4xl">{icon}</span>
+    <div className="card-surface group flex h-full flex-col gap-6 p-8">
+      <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-[rgba(119,117,117,0.28)] bg-[var(--color-surface-bright)] transition-colors group-hover:border-[rgba(189,157,255,0.5)]">
+        <span className="material-symbols-outlined text-2xl text-[var(--color-primary)]" aria-hidden="true">{icon}</span>
       </div>
       
       <div className="flex flex-col gap-3">
-        <h3 className="text-[var(--color-term-green)] text-xl font-display font-semibold leading-tight tracking-widest uppercase">
-          &gt; {title}
+        <h3 className="font-display text-xl font-bold uppercase leading-tight text-[var(--color-text)]">
+          {title}
         </h3>
-        <p className="text-[var(--color-term-green)] opacity-80 text-sm font-body leading-relaxed pl-4 border-l border-[var(--color-term-dim)]">
+        <p className="border-l border-[rgba(119,117,117,0.28)] pl-4 text-sm leading-relaxed text-[var(--color-text-muted)]">
           {description}
         </p>
       </div>

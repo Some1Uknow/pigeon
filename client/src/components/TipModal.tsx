@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { usePrivatePayments } from "../hooks/usePrivatePayments";
 import { TIP_PRESETS, lamportsToSol, solToLamports } from "../utils/magicblock";
 
@@ -29,6 +29,15 @@ export function TipModal({ isOpen, onClose, recipientAddress, recipientLabel }: 
         clearError();
         onClose();
     }, [onClose, clearError]);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") handleClose();
+        };
+        document.addEventListener("keydown", onKeyDown);
+        return () => document.removeEventListener("keydown", onKeyDown);
+    }, [isOpen, handleClose]);
 
     const handlePresetClick = (lamports: number) => {
         setSelectedAmount(lamports);
@@ -65,119 +74,126 @@ export function TipModal({ isOpen, onClose, recipientAddress, recipientLabel }: 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center font-body">
-            {/* Backdrop */}
-            <div
-                className="absolute inset-0 bg-black/80 backdrop-blur-none"
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 font-body">
+            <button
+                type="button"
+                className="absolute inset-0 bg-[rgba(5,5,5,0.78)] backdrop-blur-md"
                 onClick={handleClose}
+                aria-label="Close transfer modal"
             />
 
-            {/* Modal */}
-            <div className="relative z-10 w-full max-w-md mx-4 bg-black border border-[var(--color-term-green)] shadow-[8px_8px_0px_var(--color-term-dim)]">
-                {/* Header */}
-                <div className="flex items-center justify-between p-4 bg-[var(--color-term-dim)]/20 border-b border-[var(--color-term-green)]">
-                    <h2 className="text-lg font-display font-bold text-[var(--color-term-green)] tracking-widest uppercase">
-                        {step === "success" ? "TX_CONFIRMED" : step === "error" ? "TX_FAILED" : "INIT_TRANSFER"}
-                    </h2>
+            <div className="glass-panel relative z-10 w-full max-w-md rounded-xl">
+                <div className="flex items-center justify-between border-b border-[rgba(119,117,117,0.16)] p-4">
+                    <div>
+                        <p className="font-label text-xs uppercase tracking-[0.08em] text-[var(--color-secondary)]">
+                            Private payment
+                        </p>
+                        <h2 className="font-display text-xl font-bold uppercase text-[var(--color-text)]">
+                            {step === "success" ? "TX_CONFIRMED" : step === "error" ? "TX_FAILED" : "INIT_TRANSFER"}
+                        </h2>
+                    </div>
                     <button
+                        type="button"
                         onClick={handleClose}
-                        className="text-[var(--color-term-green)] hover:text-white font-display font-bold"
+                        className="min-h-10 min-w-10 rounded-md text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-surface-bright)] hover:text-[var(--color-text)]"
+                        aria-label="Close transfer modal"
                     >
-                        [ X ]
+                        X
                     </button>
                 </div>
 
-                {/* Content */}
                 <div className="p-6">
                     {step === "amount" && (
                         <div className="space-y-6">
-                            <p className="text-[var(--color-term-dim)] text-center text-sm uppercase tracking-widest">
-                                Target: <span className="text-[var(--color-term-green)]">{displayRecipient}</span>
+                            <p className="rounded-md border border-[rgba(119,117,117,0.16)] bg-[var(--color-surface-low)] px-3 py-2 text-center font-label text-xs uppercase tracking-[0.08em] text-[var(--color-text-muted)]">
+                                Target: <span className="text-[var(--color-secondary)]">{displayRecipient}</span>
                             </p>
 
-                            {/* Preset amounts */}
                             <div className="grid grid-cols-3 gap-3">
                                 {TIP_PRESETS.map((preset) => (
                                     <button
                                         key={preset.label}
+                                        type="button"
                                         onClick={() => handlePresetClick(preset.lamports)}
-                                        className={`py-3 px-4 font-display font-bold uppercase tracking-widest text-sm transition-none border ${selectedAmount === preset.lamports && !customAmount
-                                                ? "bg-[var(--color-term-green)] text-black border-[var(--color-term-green)]"
-                                                : "bg-black text-[var(--color-term-green)] border-[var(--color-term-dim)] hover:border-[var(--color-term-green)]"
-                                            }`}
+                                        className={`min-h-12 rounded-md border px-3 font-label text-sm font-bold uppercase transition-colors ${
+                                            selectedAmount === preset.lamports && !customAmount
+                                                ? "border-[rgba(189,157,255,0.58)] bg-[rgba(189,157,255,0.16)] text-[var(--color-primary)]"
+                                                : "border-[rgba(119,117,117,0.22)] bg-[var(--color-surface-black)] text-[var(--color-text-muted)] hover:border-[rgba(0,238,252,0.42)] hover:text-[var(--color-secondary)]"
+                                        }`}
                                     >
                                         {preset.label}
                                     </button>
                                 ))}
                             </div>
 
-                            {/* Custom amount */}
-                            <div>
-                                <label className="block text-xs text-[var(--color-term-dim)] mb-2 uppercase tracking-widest font-display">Custom Amount:</label>
-                                <div className="relative">
+                            <label className="block">
+                                <span className="mb-2 block font-label text-xs uppercase tracking-[0.08em] text-[var(--color-text-muted)]">
+                                    Custom amount
+                                </span>
+                                <div className="flex min-h-12 items-center rounded-md border border-[rgba(119,117,117,0.22)] bg-[var(--color-surface-black)] px-4 focus-within:border-[var(--color-secondary)]">
                                     <input
                                         type="number"
+                                        inputMode="decimal"
                                         step="0.001"
                                         min="0"
                                         placeholder="0.00"
                                         value={customAmount}
                                         onChange={(e) => handleCustomAmountChange(e.target.value)}
-                                        className="w-full px-4 py-3 bg-black border border-[var(--color-term-green)] text-[var(--color-term-green)] placeholder-[var(--color-term-dim)] focus:outline-none rounded-none font-display text-lg"
+                                        className="min-w-0 flex-1 border-0 bg-transparent font-label text-lg text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]"
                                     />
-                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-term-green)] font-display">SOL</span>
+                                    <span className="font-label text-sm text-[var(--color-secondary)]">SOL</span>
                                 </div>
-                            </div>
+                            </label>
 
                             <button
+                                type="button"
                                 onClick={handleConfirm}
                                 disabled={selectedAmount <= 0}
-                                className="w-full py-3 px-4 bg-[var(--color-term-green)] hover:bg-white disabled:bg-[var(--color-term-dim)] disabled:cursor-not-allowed text-black font-display font-bold uppercase tracking-widest transition-none"
+                                className="btn-primary min-h-12 w-full px-4 text-sm disabled:opacity-50"
                             >
-                                [ PROCEED ]
+                                [ Proceed ]
                             </button>
                         </div>
                     )}
 
                     {step === "confirm" && (
                         <div className="space-y-6">
-                            <div className="text-center border-b border-[var(--color-term-dim)] border-dashed pb-4">
-                                <p className="text-3xl font-display font-bold text-[var(--color-term-green)] mb-2">
+                            <div className="border-b border-[rgba(119,117,117,0.16)] pb-5 text-center">
+                                <p className="mb-2 font-display text-4xl font-bold text-[var(--color-primary)]">
                                     {lamportsToSol(selectedAmount)} SOL
                                 </p>
-                                <p className="text-[var(--color-term-dim)] text-xs uppercase tracking-widest">
-                                    &gt;&gt; {displayRecipient}
+                                <p className="font-label text-xs uppercase tracking-[0.08em] text-[var(--color-text-muted)]">
+                                    to {displayRecipient}
                                 </p>
                             </div>
 
-                            <div className="bg-[var(--color-term-dim)]/10 p-4 border border-[var(--color-term-dim)]">
-                                <div className="flex justify-between text-sm mb-2">
-                                    <span className="text-[var(--color-term-dim)] uppercase tracking-wider font-display">Amount</span>
-                                    <span className="text-[var(--color-term-green)] font-display">{lamportsToSol(selectedAmount)} SOL</span>
+                            <div className="panel-surface space-y-3 rounded-lg p-4 font-label text-sm">
+                                <div className="flex justify-between">
+                                    <span className="text-[var(--color-text-muted)]">Amount</span>
+                                    <span className="text-[var(--color-text)]">{lamportsToSol(selectedAmount)} SOL</span>
                                 </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-[var(--color-term-dim)] uppercase tracking-wider font-display">Network Fee</span>
-                                    <span className="text-[var(--color-term-green)] font-display">~0.000005 SOL</span>
+                                <div className="flex justify-between">
+                                    <span className="text-[var(--color-text-muted)]">Network Fee</span>
+                                    <span className="text-[var(--color-text)]">~0.000005 SOL</span>
                                 </div>
                             </div>
 
                             <div className="flex gap-3">
                                 <button
+                                    type="button"
                                     onClick={handleBack}
                                     disabled={isLoading}
-                                    className="flex-1 py-3 px-4 bg-black border border-[var(--color-term-dim)] hover:border-[var(--color-term-green)] text-[var(--color-term-green)] font-display font-bold uppercase tracking-widest transition-none"
+                                    className="btn-secondary min-h-12 flex-1 px-4 text-sm disabled:opacity-50"
                                 >
-                                    [ BACK ]
+                                    [ Back ]
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={handleSendTip}
                                     disabled={isLoading}
-                                    className="flex-1 py-3 px-4 bg-[var(--color-term-green)] hover:bg-white disabled:bg-[var(--color-term-dim)] text-black font-display font-bold uppercase tracking-widest transition-none"
+                                    className="btn-primary min-h-12 flex-1 px-4 text-sm disabled:opacity-50"
                                 >
-                                    {isLoading ? (
-                                        "PROCESSING..."
-                                    ) : (
-                                        "[ CONFIRM ]"
-                                    )}
+                                    {isLoading ? "Processing..." : "[ Confirm ]"}
                                 </button>
                             </div>
                         </div>
@@ -185,14 +201,14 @@ export function TipModal({ isOpen, onClose, recipientAddress, recipientLabel }: 
 
                     {step === "success" && (
                         <div className="space-y-6 text-center">
-                            <div className="py-4">
-                                <span className="text-[var(--color-term-green)] text-4xl font-display">[ SUCCESS ]</span>
+                            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-lg bg-[rgba(67,215,135,0.1)] text-[var(--color-success)]">
+                                <span className="material-symbols-outlined text-4xl" aria-hidden="true">check_circle</span>
                             </div>
 
                             <div>
-                                <p className="text-lg font-display text-[var(--color-term-green)] mb-1">TRANSFER COMPLETE</p>
-                                <p className="text-[var(--color-term-dim)] text-sm font-body">
-                                    {lamportsToSol(selectedAmount)} SOL &gt;&gt; {displayRecipient}
+                                <p className="mb-1 font-display text-2xl font-bold uppercase text-[var(--color-text)]">Transfer complete</p>
+                                <p className="text-sm text-[var(--color-text-muted)]">
+                                    {lamportsToSol(selectedAmount)} SOL to {displayRecipient}
                                 </p>
                             </div>
 
@@ -200,43 +216,48 @@ export function TipModal({ isOpen, onClose, recipientAddress, recipientLabel }: 
                                 href={`https://explorer.solana.com/tx/${txSignature}?cluster=devnet`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-block text-[var(--color-term-green)] hover:text-white text-xs underline font-display tracking-widest"
+                                className="inline-flex min-h-10 items-center justify-center rounded-md px-3 font-label text-xs uppercase tracking-[0.08em] text-[var(--color-secondary)] hover:bg-[var(--color-surface-bright)]"
                             >
-                                VIEW_ON_EXPLORER
+                                View on explorer
                             </a>
 
                             <button
+                                type="button"
                                 onClick={handleClose}
-                                className="w-full py-3 px-4 bg-black border border-[var(--color-term-green)] text-[var(--color-term-green)] hover:bg-[var(--color-term-green)] hover:text-black font-display font-bold uppercase tracking-widest transition-none"
+                                className="btn-secondary min-h-12 w-full px-4 text-sm"
                             >
-                                [ CLOSE_TERMINAL ]
+                                [ Close terminal ]
                             </button>
                         </div>
                     )}
 
                     {step === "error" && (
                         <div className="space-y-6 text-center">
-                            <div className="py-4">
-                                <span className="text-[var(--color-term-alert)] text-4xl font-display">[ FAILED ]</span>
+                            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-lg bg-[rgba(255,110,132,0.1)] text-[var(--color-error)]">
+                                <span className="material-symbols-outlined text-4xl" aria-hidden="true">error</span>
                             </div>
 
                             <div>
-                                <p className="text-lg font-display text-[var(--color-term-alert)] mb-2">TRANSACTION ABORTED</p>
-                                <p className="text-[var(--color-term-dim)] text-xs font-body break-all bg-[var(--color-term-dim)]/10 p-2 border border-[var(--color-term-dim)]">{error}</p>
+                                <p className="mb-2 font-display text-2xl font-bold uppercase text-[var(--color-error)]">Transaction aborted</p>
+                                <p className="break-all rounded-md border border-[rgba(255,110,132,0.24)] bg-[rgba(255,110,132,0.08)] p-3 text-left text-xs leading-relaxed text-[var(--color-text-muted)]">
+                                    {error || "The payment could not be completed."}
+                                </p>
                             </div>
 
                             <div className="flex gap-3">
                                 <button
+                                    type="button"
                                     onClick={handleBack}
-                                    className="flex-1 py-3 px-4 bg-black border border-[var(--color-term-green)] text-[var(--color-term-green)] hover:bg-[var(--color-term-green)] hover:text-black font-display font-bold uppercase tracking-widest transition-none"
+                                    className="btn-primary min-h-12 flex-1 px-4 text-sm"
                                 >
-                                    [ RETRY ]
+                                    [ Retry ]
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={handleClose}
-                                    className="flex-1 py-3 px-4 bg-black border border-[var(--color-term-dim)] text-[var(--color-term-dim)] hover:text-white font-display font-bold uppercase tracking-widest transition-none"
+                                    className="btn-secondary min-h-12 flex-1 px-4 text-sm"
                                 >
-                                    [ ABORT ]
+                                    [ Abort ]
                                 </button>
                             </div>
                         </div>

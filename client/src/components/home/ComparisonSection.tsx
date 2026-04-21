@@ -2,17 +2,23 @@ import ComparisonCard from "./ComparisonCard";
 
 export default function ComparisonSection() {
     return (
-        <div className="space-y-16 py-10 border-t border-[var(--color-term-dim)] border-dashed">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
-                <h2 className="md:col-span-6 text-[var(--color-term-green)] text-3xl md:text-4xl font-display font-semibold tracking-widest uppercase">
-                    COMPETITOR_ANALYSIS
-                </h2>
-                <p className="md:col-span-6 text-[var(--color-term-green)] opacity-80 text-base md:text-lg md:text-right font-body">
-                    &gt; Benchmarking against centralized entities...
+        <div className="space-y-16">
+            <div className="grid grid-cols-1 items-end gap-6 md:grid-cols-12">
+                <div className="md:col-span-6">
+                    <div className="home-section-label">
+                        <span className="material-symbols-outlined" aria-hidden="true">compare_arrows</span>
+                        COMPETITOR_ANALYSIS
+                    </div>
+                    <h2 className="mt-6 font-display text-3xl font-bold uppercase text-[var(--color-text)] md:text-4xl">
+                        The difference is where trust lives.
+                    </h2>
+                </div>
+                <p className="text-base leading-relaxed text-[var(--color-text-muted)] md:col-span-6 md:text-right md:text-lg">
+                    Centralized messengers can encrypt content and still own identity, routing, and product rails.
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
                 <ComparisonCard
                     title="WHATSAPP"
                     subtitle="Centralized_Entity"

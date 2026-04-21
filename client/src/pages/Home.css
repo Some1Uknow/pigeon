@@ -1,165 +1,90 @@
-/* Terminal Retro Effects */
-
-.glow-effect {
-  /* Renamed concept: now just a hard hover state */
-  border: 1px solid var(--color-term-green);
-  box-shadow: none;
-  transition: none;
+.home-shell {
+  isolation: isolate;
 }
 
-.glow-effect:hover {
-  background-color: var(--color-term-green);
-  color: #000;
-  box-shadow: 4px 4px 0 var(--color-term-dim);
-  transform: translate(-2px, -2px);
+.home-section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: 1px solid rgba(119, 117, 117, 0.32);
+  padding-bottom: 0.75rem;
+  color: var(--color-secondary);
+  font-family: var(--font-label);
+  font-size: 0.875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
-.card-surface {
-  background: #000;
-  border: 1px solid var(--color-term-dim);
-  transition: none;
-}
-
-.card-surface:hover {
-  border-color: var(--color-term-green);
-  background: #000;
-  transform: none;
-}
-
+.card-surface,
 .bento-card {
-  background: #000;
-  border: 1px solid var(--color-term-dim);
-  position: relative;
+  border: 1px solid rgba(119, 117, 117, 0.18);
+  border-radius: 0.75rem;
+  background: rgba(26, 25, 25, 0.84);
+  transition:
+    background-color 180ms var(--ease-out),
+    border-color 180ms var(--ease-out),
+    transform 180ms var(--ease-out);
 }
 
-.bento-card::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0; height: 1px;
-  background: var(--color-term-green);
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
+.card-surface:hover,
 .bento-card:hover {
-  border-color: var(--color-term-green);
-}
-
-.bento-card:hover::before {
-  opacity: 1;
-}
-
-/* Animations */
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-
-.cursor-blink::after {
-  content: "█";
-  margin-left: 2px;
-  animation: blink 1s step-end infinite;
-  color: var(--color-term-green);
-}
-
-.holographic-pigeon {
-  /* Pixelate effect */
-  image-rendering: pixelated;
-  filter: grayscale(100%) brightness(0.8) sepia(100%) hue-rotate(50deg) saturate(300%) contrast(1.2);
-}
-
-.subtle-grid {
-  background-image:
-    linear-gradient(var(--color-term-dim) 1px, transparent 1px),
-    linear-gradient(90deg, var(--color-term-dim) 1px, transparent 1px);
-  background-size: 40px 40px;
-  opacity: 0.3;
-}
-
-.radial-glow {
-  /* Removed glow, replaced with vignette */
-  background: radial-gradient(circle, transparent 60%, #000 100%);
-}
-
-.scanlines {
-  /* Kept global scanlines */
-}
-
-.section-frame {
-  position: relative;
-  padding: 4rem 0;
-  border-top: 1px dashed var(--color-term-dim);
-  border-bottom: 1px dashed var(--color-term-dim);
+  border-color: rgba(189, 157, 255, 0.42);
+  background: rgba(32, 31, 31, 0.92);
+  transform: translateY(-2px);
 }
 
 .band-surface {
   position: relative;
-  border: 1px solid var(--color-term-green);
-  background: #000;
-  padding: 4rem;
+  overflow: hidden;
+  border: 1px solid rgba(119, 117, 117, 0.16);
+  border-radius: 0.75rem;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(189, 157, 255, 0.12), transparent 28rem),
+    rgba(19, 19, 19, 0.92);
+  box-shadow: var(--shadow-ambient);
 }
 
-/* Hard fade in */
-@keyframes appear {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.fade-in-up {
-  animation: appear 0.5s steps(5) forwards;
-}
-
-.stagger-1 { animation-delay: 0.1s; opacity: 0; }
-.stagger-2 { animation-delay: 0.2s; opacity: 0; }
-.stagger-3 { animation-delay: 0.3s; opacity: 0; }
-
-/* Tech stack badge styles */
 .tech-badge {
-  background: #000;
-  border: 1px solid var(--color-term-dim);
-  color: var(--color-term-dim);
-  font-family: var(--font-display);
+  border: 1px solid rgba(119, 117, 117, 0.22);
+  border-radius: 0.5rem;
+  background: var(--color-surface-low);
+  color: var(--color-text-muted);
+  font-family: var(--font-label);
 }
 
 .tech-badge:hover {
-  border-color: var(--color-term-green);
-  color: var(--color-term-green);
-  background: #000;
+  border-color: rgba(0, 238, 252, 0.42);
+  color: var(--color-secondary);
 }
 
 .stat-highlight {
-  text-shadow: 0 0 5px var(--color-term-green);
+  color: var(--color-secondary);
+  text-shadow: 0 0 20px rgba(0, 238, 252, 0.18);
 }
 
-.logo-monochrome {
-  /* Just remove color, keep contrast so details (like the plane in Telegram) are visible */
-  filter: grayscale(100%) brightness(1.2);
-  opacity: 0.9;
+.fade-in-up {
+  animation: fade-in-up 420ms var(--ease-out) both;
 }
 
-/* Button overrides */
-.btn-primary {
-  background: var(--color-term-green);
-  color: #000;
-  border: 1px solid var(--color-term-green);
-  text-transform: uppercase;
-  font-family: var(--font-display);
-  font-size: 1.25rem;
+.stagger-1 {
+  animation-delay: 80ms;
 }
 
-.btn-primary:hover {
-  background: #000;
-  color: var(--color-term-green);
-  box-shadow: 4px 4px 0 var(--color-term-dim);
+.stagger-2 {
+  animation-delay: 140ms;
 }
 
-.btn-ghost {
-  background: transparent;
-  color: var(--color-term-green);
-  border: 1px solid var(--color-term-green);
+.stagger-3 {
+  animation-delay: 220ms;
 }
 
-.btn-ghost:hover {
-  background: var(--color-term-dim);
-  color: var(--color-term-green);
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

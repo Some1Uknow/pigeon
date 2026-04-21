@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PIGEON_PROTOCOL - Cryptographic Terminal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;700&amp;family=Space+Grotesk:wght@500;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "tertiary-container": "#e0e6ee",
+                        "secondary": "#00eefc",
+                        "background": "#0e0e0e",
+                        "surface-dim": "#0e0e0e",
+                        "on-secondary-container": "#e3fdff",
+                        "surface-container-high": "#201f1f",
+                        "primary": "#bd9dff",
+                        "on-tertiary-fixed-variant": "#585e65",
+                        "on-error-container": "#ffb2b9",
+                        "inverse-surface": "#fcf8f8",
+                        "secondary-fixed-dim": "#00deec",
+                        "secondary-container": "#006970",
+                        "tertiary-fixed-dim": "#d2d8e0",
+                        "primary-fixed-dim": "#a67aff",
+                        "on-primary": "#3c0089",
+                        "inverse-on-surface": "#565554",
+                        "on-secondary": "#005359",
+                        "primary-dim": "#8a4cfc",
+                        "on-tertiary-fixed": "#3b4248",
+                        "on-surface": "#ffffff",
+                        "surface-container-low": "#131313",
+                        "on-tertiary-container": "#4e545b",
+                        "error-dim": "#d73357",
+                        "surface-container-lowest": "#000000",
+                        "on-secondary-fixed-variant": "#005e64",
+                        "on-primary-fixed": "#000000",
+                        "outline": "#777575",
+                        "tertiary": "#eef4fc",
+                        "tertiary-fixed": "#e0e6ee",
+                        "surface-bright": "#2c2c2c",
+                        "surface": "#0e0e0e",
+                        "on-surface-variant": "#adaaaa",
+                        "on-background": "#ffffff",
+                        "secondary-fixed": "#00eefc",
+                        "outline-variant": "#494847",
+                        "on-primary-fixed-variant": "#390083",
+                        "primary-fixed": "#b28cff",
+                        "primary-container": "#b28cff",
+                        "inverse-primary": "#742fe5",
+                        "error-container": "#a70138",
+                        "on-primary-container": "#2e006c",
+                        "surface-tint": "#bd9dff",
+                        "surface-container": "#1a1919",
+                        "secondary-dim": "#00deec",
+                        "on-secondary-fixed": "#003f43",
+                        "surface-container-highest": "#262626",
+                        "error": "#ff6e84",
+                        "tertiary-dim": "#d2d8e0",
+                        "on-tertiary": "#565c63",
+                        "on-error": "#490013",
+                        "surface-variant": "#262626"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["JetBrains Mono", "monospace"] // Using JetBrains Mono for the terminal feel as per Design System
+                    },
+                    backgroundImage: {
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                        'primary-gradient': 'linear-gradient(45deg, #bd9dff, #8a4cfc)',
+                    },
+                    boxShadow: {
+                        'ambient': '0px 24px 48px rgba(0, 0, 0, 0.8)',
+                        'ambient-glow': '0px 24px 48px rgba(0, 0, 0, 0.8), 0px 0px 12px rgba(189, 157, 255, 0.2)',
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Ambient Background Textures */
+        .bg-noise {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+        }
+        
+        /* Grid Lines */
+        .bg-grid {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            pointer-events: none;
+        }
+
+        /* Glassmorphism utility */
+        .glass-panel {
+            background-color: rgba(44, 44, 44, 0.4); /* surface-bright at 40% */
+            backdrop-filter: blur(20px);
+        }
+
+        /* Primary Button Gradient */
+        .btn-primary {
+            background: linear-gradient(45deg, #bd9dff, #8a4cfc);
+        }
+
+        /* Text Gradients */
+        .text-gradient-chrome {
+            background: linear-gradient(to bottom, #ffffff, #bd9dff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .font-space-grotesk {
+            font-family: "Space Grotesk", sans-serif;
+        }
+
+        .rounded-DEFAULT {
+            border-radius: 0.125rem;
+        }
+
+        .cursor-terminal {
+            cursor: pointer;
+        }
+
+        @keyframes marquee {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        .animate-marquee {
+            animation: marquee 24s linear infinite;
+            will-change: transform;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .animate-marquee {
+                animation: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body min-h-screen relative overflow-x-hidden selection:bg-primary-dim selection:text-white">
+<!-- Global Background Elements -->
+<div class="fixed inset-0 bg-noise z-0"></div>
+<div class="fixed inset-0 bg-grid z-0"></div>
+<!-- Ambient Lights -->
+<div class="fixed top-[-20%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-primary/10 blur-[120px] z-0 pointer-events-none"></div>
+<div class="fixed bottom-[-20%] left-[-10%] w-[40vw] h-[40vw] rounded-full bg-secondary/10 blur-[100px] z-0 pointer-events-none"></div>
+<!-- TopNavBar (Shared Component) -->
+<nav class="fixed top-0 w-full z-50 border-b border-neutral-800/20 bg-[#0e0e0e]/40 backdrop-blur-xl dark:bg-[#0e0e0e]/40 flex justify-between items-center px-12 h-20 shadow-2xl">
+<div class="flex items-center gap-4">
+<span class="text-2xl font-black text-violet-500 shadow-[0_4px_12px_rgba(124,58,237,0.4)]">PIGEON_PROTOCOL</span>
+</div>
+<div class="hidden md:flex items-center gap-8 font-space-grotesk uppercase tracking-tighter text-sm">
+<!-- Navigation Links - Assuming HOME is active contextually for landing page -->
+<a class="text-neutral-400 hover:text-white hover:backdrop-brightness-125 transition-all duration-300 active:scale-95 duration-200" href="#">TERMINAL</a>
+<a class="text-neutral-400 hover:text-white hover:backdrop-brightness-125 transition-all duration-300 active:scale-95 duration-200" href="#">NODES</a>
+<a class="text-neutral-400 hover:text-white hover:backdrop-brightness-125 transition-all duration-300 active:scale-95 duration-200" href="#">BRIDGE</a>
+<a class="text-neutral-400 hover:text-white hover:backdrop-brightness-125 transition-all duration-300 active:scale-95 duration-200" href="#">DOCS</a>
+</div>
+<div class="flex items-center">
+<button class="font-space-grotesk uppercase tracking-tighter text-sm text-violet-400 dark:text-violet-400 border border-violet-400/30 px-6 py-2 rounded-DEFAULT hover:bg-violet-400/10 transition-colors">
+                CONNECT_WALLET
+            </button>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="relative z-10 pt-32 pb-24 px-6 md:px-12 lg:px-24 max-w-[1600px] mx-auto space-y-32">
+<!-- 2. HERO SECTION -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center min-h-[716px]">
+<div class="lg:col-span-7 space-y-8">
+<div class="font-label text-secondary text-sm md:text-base tracking-widest flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">terminal</span>
+                    &gt; PRIVATE_MSG --NO_MIDDLEMEN
+                </div>
+<h1 class="font-headline text-5xl md:text-7xl lg:text-[8rem] font-black leading-none tracking-[-0.02em] text-gradient-chrome uppercase">
+                    PIGEON_<br/>PROTOCOL
+                </h1>
+<div class="font-label text-on-surface-variant text-sm md:text-base space-y-2 border-l-2 border-outline-variant/30 pl-4">
+<p>// Connect wallet.</p>
+<p>// Chat encrypted.</p>
+<p>// No logs.</p>
+</div>
+<div class="flex flex-wrap items-center gap-6 pt-4">
+<button class="btn-primary text-on-primary font-label text-sm px-8 py-4 rounded-md uppercase tracking-wider shadow-ambient-glow hover:brightness-125 transition-all">
+                        [ INITIALIZE_LINK ]
+                    </button>
+<button class="bg-surface-variant border border-outline-variant/30 text-on-surface font-label text-sm px-8 py-4 rounded-md uppercase tracking-wider hover:border-secondary/50 hover:bg-surface-container-highest transition-all flex items-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">code</span>
+                        [ GITHUB ]
+                    </button>
+</div>
+<!-- Live Metrics Row -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-8">
+<div class="glass-panel p-4 rounded-lg border border-outline-variant/15 flex flex-col gap-1">
+<span class="font-label text-xs text-on-surface-variant uppercase">SERVERS_TRUSTED</span>
+<span class="font-headline text-2xl text-secondary">0</span>
+</div>
+<div class="glass-panel p-4 rounded-lg border border-outline-variant/15 flex flex-col gap-1">
+<span class="font-label text-xs text-on-surface-variant uppercase">PAYLOAD_ENCRYPTION</span>
+<span class="font-headline text-2xl text-primary">100%</span>
+</div>
+<div class="glass-panel p-4 rounded-lg border border-outline-variant/15 flex flex-col gap-1">
+<span class="font-label text-xs text-on-surface-variant uppercase">RECENT_BLOCKS</span>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-secondary animate-pulse"></div>
+<span class="font-label text-sm text-secondary">SYNCING...</span>
+</div>
+</div>
+</div>
+</div>
+<div class="lg:col-span-5 relative flex justify-center items-center h-full min-h-[400px]">
+<!-- Voxel Pigeon Core Placeholder -->
+<div class="absolute inset-0 bg-gradient-radial from-primary/20 to-transparent blur-2xl z-0"></div>
+<img alt="Floating 3D voxel art style pigeon head with metallic chrome beak and glowing cyan eyes over a holographic base" class="relative z-10 w-full max-w-md object-contain filter drop-shadow-[0_0_30px_rgba(0,238,252,0.3)] mix-blend-screen opacity-90" data-alt="Floating 3D voxel art style pigeon head with metallic chrome beak and glowing cyan eyes over a holographic base" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3b38X8gREK9tYuPHXqWzpcjjQmBQ8YCOD_8sZzyz3e7yg1bpkqBsdLwxwtxMAGGOQwyMD_ZTsjRMIYx3ULACybpZtKWEm3Vs05736NNWGESO-zwQWQLbVEWNj63EHNDbHdHwc_EyfYFEGH-ItFJV20_fAIChYbgHUhEVwrkerSutd2bEJ2P6FfJmyD0wEoxU1qr_kqnb0-7fJP95UAYNqPlIkiCn3USkg8U0H-F4JJiBA6AvR8Cw_aKlpFje2cXc6-Sat0dB8jKM"/>
+</div>
+</section>
+<!-- 3. TRUST STRIP -->
+<section class="w-[100vw] relative left-1/2 -translate-x-1/2 border-y border-outline-variant/15 bg-surface-container-low overflow-hidden py-4">
+<div class="flex whitespace-nowrap overflow-hidden">
+<div class="animate-marquee font-label text-xs text-on-surface-variant tracking-[0.2em] flex gap-12 items-center">
+<span>X25519 SECURE HANDSHAKE</span>
+<span class="text-secondary">•</span>
+<span>CHACHA20-POLY1305</span>
+<span class="text-secondary">•</span>
+<span>OPEN SOURCE</span>
+<span class="text-secondary">•</span>
+<span>NO CENTRAL SERVERS</span>
+<span class="text-secondary">•</span>
+<span>END-TO-END ENCRYPTED</span>
+<span class="text-secondary">•</span>
+<span>X25519 SECURE HANDSHAKE</span>
+<span class="text-secondary">•</span>
+<span>CHACHA20-POLY1305</span>
+</div>
+</div>
+</section>
+<!-- 4. WHY_PIGEON -->
+<section class="space-y-16">
+<div class="border-b border-outline-variant/30 pb-4 inline-block">
+<h2 class="font-label text-secondary text-xl uppercase tracking-widest flex items-center gap-3">
+<span class="material-symbols-outlined">folder_open</span>
+                    WHY_PIGEON.SYS
+                </h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Card 1 -->
+<div class="bg-surface-container hover:bg-surface-container-high transition-colors p-8 rounded-xl border border-outline-variant/15 flex flex-col gap-6 group">
+<div class="w-12 h-12 rounded-lg bg-surface-bright flex items-center justify-center border border-outline-variant/30 group-hover:border-primary/50 transition-colors">
+<span class="material-symbols-outlined text-primary text-2xl">shield_locked</span>
+</div>
+<div>
+<h3 class="font-headline text-xl text-on-surface uppercase mb-2 tracking-tight">Zero Trust Base</h3>
+<p class="font-body text-on-surface-variant text-sm leading-relaxed">Cryptographic proof required for all interactions. We cannot read your messages even if compelled.</p>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container hover:bg-surface-container-high transition-colors p-8 rounded-xl border border-outline-variant/15 flex flex-col gap-6 group">
+<div class="w-12 h-12 rounded-lg bg-surface-bright flex items-center justify-center border border-outline-variant/30 group-hover:border-secondary/50 transition-colors">
+<span class="material-symbols-outlined text-secondary text-2xl">bolt</span>
+</div>
+<div>
+<h3 class="font-headline text-xl text-on-surface uppercase mb-2 tracking-tight">Sub-Second Finality</h3>
+<p class="font-body text-on-surface-variant text-sm leading-relaxed">Leveraging high-throughput infrastructure for real-time message delivery across the globe.</p>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container hover:bg-surface-container-high transition-colors p-8 rounded-xl border border-outline-variant/15 flex flex-col gap-6 group">
+<div class="w-12 h-12 rounded-lg bg-surface-bright flex items-center justify-center border border-outline-variant/30 group-hover:border-primary-dim/50 transition-colors">
+<span class="material-symbols-outlined text-primary-dim text-2xl">code_blocks</span>
+</div>
+<div>
+<h3 class="font-headline text-xl text-on-surface uppercase mb-2 tracking-tight">Verifiable Source</h3>
+<p class="font-body text-on-surface-variant text-sm leading-relaxed">Don't trust, verify. Entire protocol stack is open-source and regularly audited by tier-1 security firms.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- 5. PRIVACY ARCHITECTURE -->
+<section class="bg-surface-container-low rounded-xl p-1 lg:p-12 border border-outline-variant/10 relative overflow-hidden">
+<!-- Hardware aesthetic grid -->
+<div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none"></div>
+<div class="relative z-10 space-y-12 p-8 lg:p-0">
+<h2 class="font-headline text-3xl md:text-4xl text-on-surface uppercase tracking-tight">Privacy Architecture</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+<!-- Module -->
+<div class="bg-surface p-6 rounded-lg border border-outline-variant/20 flex items-start gap-4">
+<div class="w-2 h-2 mt-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div>
+<div>
+<div class="font-label text-xs text-on-surface-variant mb-1">MOD_01</div>
+<div class="font-headline text-lg text-on-surface">WALLET_ID_ONLY</div>
+</div>
+</div>
+<!-- Module -->
+<div class="bg-surface p-6 rounded-lg border border-outline-variant/20 flex items-start gap-4">
+<div class="w-2 h-2 mt-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div>
+<div>
+<div class="font-label text-xs text-on-surface-variant mb-1">MOD_02</div>
+<div class="font-headline text-lg text-on-surface">REALTIME_SYNC</div>
+</div>
+</div>
+<!-- Module -->
+<div class="bg-surface p-6 rounded-lg border border-outline-variant/20 flex items-start gap-4">
+<div class="w-2 h-2 mt-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div>
+<div>
+<div class="font-label text-xs text-on-surface-variant mb-1">MOD_03</div>
+<div class="font-headline text-lg text-on-surface">NO_TRACKING</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 8. INFRASTRUCTURE -->
+<section class="space-y-12">
+<h2 class="font-headline text-3xl md:text-4xl text-on-surface uppercase tracking-tight text-center">Protocol Infrastructure</h2>
+<div class="flex flex-col lg:flex-row gap-8 items-center justify-center">
+<!-- Node Card 1 -->
+<div class="w-full lg:w-1/3 bg-surface-container p-8 rounded-xl border border-outline-variant/15 relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4">
+<div class="bg-surface-container-lowest px-3 py-1 rounded-sm border border-outline-variant/30 flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-secondary animate-pulse"></div>
+<span class="font-label text-xs text-secondary">ACTIVE</span>
+</div>
+</div>
+<div class="font-label text-xs text-on-surface-variant mb-4">NET_01</div>
+<h3 class="font-headline text-2xl text-on-surface mb-6">SOLANA_NETWORK</h3>
+<!-- Mock Graph -->
+<div class="h-24 border-b border-outline-variant/30 flex items-end gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
+<div class="w-full bg-primary/20 h-[40%]"></div>
+<div class="w-full bg-primary/30 h-[60%]"></div>
+<div class="w-full bg-primary/40 h-[30%]"></div>
+<div class="w-full bg-primary/50 h-[80%]"></div>
+<div class="w-full bg-primary/60 h-[50%]"></div>
+<div class="w-full bg-primary/70 h-[90%]"></div>
+</div>
+</div>
+<!-- Connector -->
+<div class="hidden lg:flex items-center justify-center w-24">
+<div class="h-px w-full bg-outline-variant/50 relative">
+<div class="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-secondary rounded-full"></div>
+</div>
+</div>
+<!-- Node Card 2 -->
+<div class="w-full lg:w-1/3 bg-surface-container p-8 rounded-xl border border-outline-variant/15 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4">
+<div class="bg-surface-container-lowest px-3 py-1 rounded-sm border border-outline-variant/30 flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-emerald-400"></div>
+<span class="font-label text-xs text-emerald-400">99.9%</span>
+</div>
+</div>
+<div class="font-label text-xs text-on-surface-variant mb-4">RPC_01</div>
+<h3 class="font-headline text-2xl text-on-surface mb-6">HELIUS_RPC</h3>
+<!-- Mock Ring -->
+<div class="h-24 flex items-center justify-start">
+<div class="w-16 h-16 rounded-full border-4 border-surface-bright border-t-secondary animate-spin"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- 9. FINAL CTA -->
+<section class="py-24 relative flex flex-col items-center justify-center text-center">
+<div class="absolute inset-0 bg-gradient-radial from-primary/10 to-transparent z-0 pointer-events-none"></div>
+<div class="relative z-10 space-y-8 max-w-2xl mx-auto">
+<div class="font-label text-secondary text-sm tracking-widest">
+                    SYSTEM_READY
+                </div>
+<h2 class="font-headline text-4xl md:text-5xl text-on-surface uppercase tracking-tight">
+                    INITIALIZE_CHAT_SESSION
+                </h2>
+<div class="pt-8">
+<button class="btn-primary text-on-primary font-headline font-bold text-xl md:text-2xl px-12 py-6 rounded-md uppercase tracking-wider shadow-ambient-glow hover:brightness-125 transition-all w-full md:w-auto relative overflow-hidden group">
+<span class="relative z-10">[ EXECUTE_LAUNCH ]</span>
+<!-- Hover Glitch Effect Simulator -->
+<div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out"></div>
+</button>
+</div>
+</div>
+<!-- Watermark -->
+<div class="absolute bottom-0 right-0 text-[10rem] font-black text-surface-container-high leading-none select-none pointer-events-none tracking-tighter opacity-50 font-headline">
+                PGN
+            </div>
+</section>
+</main>
+<!-- Footer (Shared Component) -->
+<footer class="w-full border-t border-neutral-800/30 bg-[#0e0e0e] dark:bg-[#0e0e0e] flex flex-col md:flex-row justify-between items-center p-8 max-w-full z-20 relative">
+<div class="text-violet-400 font-bold font-mono text-[10px] tracking-[0.2em] mb-4 md:mb-0">
+            v1.0.4-PROD // SYSTEM_STATUS_OPERATIONAL
+        </div>
+<div class="flex gap-6 font-mono text-[10px] tracking-[0.2em]">
+<a class="text-neutral-500 hover:text-neutral-300 hover:bg-neutral-900/50 transition-colors cursor-terminal px-2 py-1" href="#">SRC_CODE</a>
+<a class="text-neutral-500 hover:text-neutral-300 hover:bg-neutral-900/50 transition-colors cursor-terminal px-2 py-1" href="#">DOCS_PROTOCOL</a>
+<a class="text-neutral-500 hover:text-neutral-300 hover:bg-neutral-900/50 transition-colors cursor-terminal px-2 py-1" href="#">SEC_AUDIT</a>
+<a class="text-neutral-500 hover:text-neutral-300 hover:bg-neutral-900/50 transition-colors cursor-terminal px-2 py-1" href="#">NETWORK_STATUS</a>
+</div>
+</footer>
+</body></html>

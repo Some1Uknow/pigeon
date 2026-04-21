@@ -1,0 +1,408 @@
+═══════════════════════════════════════════════════════════════════════════════
+STARE-WORTHY DESIGN PROMPTS - READY TO COPY & PASTE
+═══════════════════════════════════════════════════════════════════════════════
+
+These prompts are optimized for Claude and ChatGPT. Copy entire prompt and paste
+into your AI tool. Add specific requests for variations.
+
+═══════════════════════════════════════════════════════════════════════════════
+PROMPT 1: HERO SECTION (Ultra-High-Fidelity)
+═══════════════════════════════════════════════════════════════════════════════
+
+You are a world-class UI designer creating stare-worthy interfaces. Generate a
+detailed visual mockup for Pigeon's hero section following these specs exactly:
+
+LAYOUT & STRUCTURE
+- Asymmetric 2-column layout (NOT centered, NOT equal)
+  - Left column: 55% width, text + CTAs, intentionally OFFSET 20-30px LOWER
+  - Right column: 45% width, animated data visualization
+- Background: #0a0a0a with subtle gradient 135deg
+  - From: rgba(0, 217, 255, 0.08) top-left
+  - To: rgba(139, 92, 246, 0.06) bottom-right
+- Floating shapes: 2-3 barely-visible circles (opacity 0.03)
+
+TYPOGRAPHY (Left Column)
+- Headline (H1):
+  - Size: 72px
+  - Weight: 300 (ultra-light, luxury signal)
+  - Tracking: -0.03em (tight, refined)
+  - Line-height: 1.1
+  - Color: #f5f5f5
+  - Max-width: 600px
+  - Copy: Specific, NOT vague (example: "Private conversations. No exposure.")
+  
+- Subheadline (H3):
+  - Size: 18px
+  - Weight: 400
+  - Tracking: 0.01em
+  - Line-height: 1.6
+  - Color: rgba(255, 255, 255, 0.62)
+  - Max-width: 520px
+
+BUTTONS (Left Column)
+- Primary Button:
+  - Background: Gradient cyan #00d9ff to purple #8b5ce6
+  - Size: 48px height, 120px width
+  - Border-radius: 8px (NOT rounded, refined minimal)
+  - Typography: 16px, 500 weight
+  - Hover state:
+    * Transform: translateY(-4px)
+    * Shadow: rgba(0, 217, 255, 0.3) 0 0 20px
+    * Transition: 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94)
+  
+- Secondary Button:
+  - Border: 1px rgba(255, 255, 255, 0.2)
+  - NO fill
+  - Hover: Border becomes rgba(255, 255, 255, 0.4)
+
+DATA VISUALIZATION (Right Column) — The Stare-Worthy Moment
+- Type: Animated bar chart showing privacy metrics (NOT static screenshot)
+- Content: 5-7 animated vertical bars representing:
+  - Message encryption strength
+  - Data protection levels
+  - Verification status
+  - Or: Real-time throughput metrics
+  
+- Animation Details:
+  - Entry: 600ms cubic-bezier(0.23, 0.96, 0.09, 1.04)
+  - Stagger: 100ms between each bar
+  - Loop: 20s ease-in-out (smooth, hypnotic)
+  - Parallax on scroll: -10px to 10px vertical offset
+  
+- Colors: Use #00d9ff with opacity gradients
+- Depth: Semi-transparent overlays, NO harsh shadows
+- Style: Floating elements, suggest motion, premium feel
+
+SCROLL INDICATOR (Bottom)
+- Text or arrow: "Scroll to explore"
+- Animation: Bounce 2s infinite (subtle, not distracting)
+- Color: rgba(255, 255, 255, 0.3)
+- Disappears on scroll
+
+DESIGN PHILOSOPHY
+- Maximize asymmetry (this is NOT centered SaaS design)
+- Luxury through restraint (fewer elements, more space)
+- Data visualization should make users pause
+- Every pixel is intentional
+
+DELIVERABLES
+- Show exact hex color values for every element
+- Provide pixel dimensions for spacing and typography
+- Include animation timing (duration + cubic-bezier curves)
+- Show hover state for button
+- Provide mobile responsive version (375px width)
+- Include before/after states
+- All specs must be production-ready
+
+Generate now and provide detailed visual specifications.
+
+═══════════════════════════════════════════════════════════════════════════════
+PROMPT 2: FEATURE GRID (2+1 Asymmetric)
+═══════════════════════════════════════════════════════════════════════════════
+
+Generate a 2+1 asymmetric feature grid for Pigeon (NOT 3 equal columns):
+
+LAYOUT STRUCTURE
+- Large featured card: LEFT side, 60% width, landscape ratio (400px × 300px)
+- Two small cards stacked: RIGHT side, 40% width
+  - Each small card: 200px × 140px
+  - Gap between small cards: 4% (vertical)
+
+FEATURED CARD (LEFT, LARGE)
+- Background: Linear gradient 135deg
+  - From: rgba(0, 217, 255, 0.08)
+  - To: rgba(139, 92, 246, 0.04)
+- Border: 1px rgba(255, 255, 255, 0.12)
+- Border-radius: 16px (larger than small cards for visual hierarchy)
+- Padding: 48px (generous, luxury signal)
+
+- Content Layout:
+  - Icon: 32×32px, color #00d9ff
+  - H3 Heading: 24px, 400 weight, #f5f5f5
+  - Body text: 16px, 400 weight, rgba(255, 255, 255, 0.62)
+  - Optional metric: 24px bold, accent color #00d9ff
+
+- Hover State:
+  - Lift: translateY(-6px)
+  - Background opacity: +4%
+  - Border color: rgba(255, 255, 255, 0.20)
+  - Shadow: rgba(0, 217, 255, 0.1) 0 12px 32px
+  - Transition: 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94)
+
+SMALL CARDS (RIGHT, STACKED)
+- Background: rgba(255, 255, 255, 0.03)
+- Border: 1px rgba(255, 255, 255, 0.08)
+- Border-radius: 12px (smaller than featured)
+- Padding: 24px
+- Border-left: 2px solid rgba(0, 217, 255, 0.3) (accent on left only)
+
+- Content per card:
+  - Icon: 24×24px
+  - H4 Heading: 16px, 400 weight, #f5f5f5
+  - Body: 13px, 400 weight, rgba(255, 255, 255, 0.5)
+
+- Hover State:
+  - Border: rgba(255, 255, 255, 0.12)
+  - Border-left: 3px #00d9ff (accent strengthens)
+  - Lift: translateY(-4px)
+  - Transition: 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94)
+  - NO shadow (keeps refined feel)
+
+SPACING
+- Top padding: 120px (section above)
+- Bottom padding: 120px (section below)
+- Card gap: 16px (horizontal)
+- Horizontal margins: 80px desktop, 24px mobile
+
+DESIGN INTENT
+- Featured card is main focus (larger, more prominent)
+- Small cards support without competing
+- Asymmetry signals premium, intentional design
+- Hover states are smooth, refined (not snappy)
+
+DELIVERABLES
+- All hex color codes
+- Exact pixel dimensions
+- Animation timing for hovers
+- Before/after hover states
+- Mobile responsive mockup (how it stacks at 375px)
+
+Generate now with all specifications.
+
+═══════════════════════════════════════════════════════════════════════════════
+PROMPT 3: CHAT PREVIEW (Premium Depth)
+═════════════════════════════════════════════════════════════════════════════════
+
+Generate a premium chat preview showcase for Pigeon with maximum depth and
+refined interactions:
+
+CONTAINER
+- Background: #0a0a0a with gradient overlay
+- Backdrop blur: 20px (premium depth signal)
+- Border: 1px rgba(255, 255, 255, 0.12)
+- Border-radius: 20px
+- Padding: 32px
+- Width: 100%, max-width 800px, centered on page
+
+HEADER
+- Avatar: 40×40px, background #00d9ff
+- Name: 16px, 500 weight, #f5f5f5
+- Status badge: 12px, "Online", color rgba(0, 217, 255, 0.8)
+- Layout: Flex row, left-aligned
+
+MESSAGE THREAD
+- Incoming messages (left-aligned):
+  - Background: rgba(255, 255, 255, 0.06)
+  - Border-left: 2px solid rgba(0, 217, 255, 0.3)
+  - Padding: 16px
+  - Border-radius: 8px
+  - Text: 14px, 400 weight, #f5f5f5
+  - Animation: slideInLeft 400ms cubic-bezier(0.23, 0.96, 0.09, 1.04)
+
+- Outgoing messages (right-aligned):
+  - Background: rgba(0, 217, 255, 0.12)
+  - Border-right: 2px solid rgba(0, 217, 255, 0.4)
+  - Padding: 16px
+  - Border-radius: 8px
+  - Text: 14px, 400 weight, #f5f5f5
+  - Animation: slideInRight 400ms cubic-bezier(0.23,0.96,0.09,1.04) + 100ms delay
+
+- Message spacing: 12px between messages (natural conversation feel)
+
+INPUT AREA
+- Container: Flex row, gap 8px, border-top 1px rgba(255, 255, 255, 0.08)
+- Input field:
+  - Background: rgba(255, 255, 255, 0.04)
+  - Border: 1px rgba(255, 255, 255, 0.08)
+  - Border-radius: 8px
+  - Padding: 12px 16px
+  - Font: 14px, 400 weight
+  - Focus state: Border rgba(255, 255, 255, 0.12), NO outline
+  - Placeholder: rgba(255, 255, 255, 0.3)
+  - Width: flex-grow
+
+- Send Button:
+  - Background: Gradient cyan to purple
+  - Size: 40×40px
+  - Border-radius: 8px
+  - Icon centered
+  - Hover: scale(1.05)
+  - Transition: 150ms cubic-bezier(0.16, 1, 0.3, 1)
+
+DESIGN PHILOSOPHY
+- Depth through 20px blur + transparency layers (not harsh shadows)
+- Messages animated in with stagger (creates flow)
+- Accent color used sparingly (left/right borders only)
+- Professional appearance, premium feel
+
+DELIVERABLES
+- All hex colors
+- Exact px dimensions
+- Animation timing (entry curves, stagger values)
+- Hover/focus states
+- Mobile responsive mockup
+
+Generate now with full specifications.
+
+═══════════════════════════════════════════════════════════════════════════════
+PROMPT 4: COMPLETE FULL-PAGE LANDING
+═════════════════════════════════════════════════════════════════════════════════
+
+Generate a complete, scrollable Pigeon landing page mockup with all sections:
+
+DESIGN DIRECTION
+- Aesthetic: Luxury/refined dark minimalism
+- Vibe: "Stripe dark mode meets premium fintech meets data visualization art"
+- Density: Spacious, generous whitespace
+- Typography: Ultra-light display (300 weight), refined body (400 weight)
+- Colors: #0a0a0a dark + #f5f5f5 text + #00d9ff accent + #8b5ce6 purple
+- Animation: Custom cubic-bezier curves (NEVER default ease)
+
+SECTION 1: SCROLL-AWARE NAVBAR
+- Fixed to top, z-index 50
+- Initial: rgba(10,10,10,0) + no blur
+- On scroll (scrollY > 100px): rgba(10,10,10,0.8) + 12px blur
+- Border-bottom: 1px rgba(255,255,255,0.08)
+- Left: Logo/brand name (14px, 500 weight, letter-spacing 0.08em)
+- Right: 3-4 nav items (13px, 400 weight), hover #f5f5f5
+- Active state: underline 1px #00d9ff
+
+SECTION 2: HERO (Asymmetric, Animated)
+- 2-column layout (text 55% left, data viz 45% right)
+- Headline: 72px, 300 weight, -0.03em tracking, #f5f5f5
+- Subheadline: 18px, 400 weight, rgba(255,255,255,0.62)
+- Data visualization: Animated bars (600ms entry, staggered)
+- Background gradient: #00d9ff to #8b5ce6 (subtle)
+- CTA buttons: Gradient, hover lift + glow
+- Padding top: 160px, bottom: 120px
+
+SECTION 3: FEATURES (2+1 Grid)
+- Featured card: 400×300px, 60% width, left
+- Small cards: 200×140px stacked, 40% width, right
+- Border-radius: Featured 16px, small 12px (varied)
+- Hover: Lift (translateY -6px), 300ms cubic-bezier
+- Padding: Featured 48px, small 24px (intentional variation)
+- Gap between sections: 120px top and bottom
+
+SECTION 4: CHAT PREVIEW (Premium Depth)
+- Container: 800px max-width, centered
+- Backdrop blur: 20px
+- Header + message thread + input
+- Messages animate in: slideInLeft/Right 400ms (staggered)
+- Accent borders on messages (2px cyan)
+- Depth through blur + transparency (no harsh shadows)
+- Padding: 120px section gap
+
+SECTION 5: DESIGN PRINCIPLES (4-Card Grid)
+- Each card: Equal width, 2 columns on mobile
+- Border-left: 2px solid #00d9ff (accent on left only)
+- Padding: 24px
+- Border-radius: 12px
+- Background: rgba(255,255,255,0.02)
+- H4: 18px, 400 weight
+- Body: 14px, rgba(255,255,255,0.62)
+- Hover: Lift (translateY -8px), 300ms cubic-bezier, shadow glow
+- Section gap: 120px
+
+SECTION 6: FOOTER (Minimal, Refined)
+- Background: #0a0a0a
+- Border-top: 1px rgba(255,255,255,0.08)
+- Padding: 60px top, 40px bottom
+- Left: Brand name + year
+- Right: 3-4 links (13px, rgba(255,255,255,0.5))
+- Link hover: rgba(255,255,255,0.8)
+
+SPACING & LAYOUT
+- All section gaps: 120px (generous whitespace)
+- Horizontal margins: 80px desktop, 24px mobile
+- Max content width: 1280px
+- No centered symmetry anywhere
+- Intentional asymmetry throughout
+
+ANIMATION SYSTEM
+- Entry animations: 600ms cubic-bezier(0.23, 0.96, 0.09, 1.04)
+- Interaction (hover): 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94)
+- Micro (instant): 150ms cubic-bezier(0.16, 1, 0.3, 1)
+- Scroll: Parallax -10px to 10px, navbar opacity = scrollY/300
+- Loops: 20s ease-in-out (background elements)
+
+RESPONSIVE
+- Mobile (375px): Stack hero into 1-column, features 1-column
+- Tablet (768px): 2-column where applicable
+- Desktop (1280px): Full asymmetric layouts
+- Font sizes: Use clamp() for responsive scaling
+
+COLOR PALETTE (Exact)
+- Background: #0a0a0a
+- Text primary: #f5f5f5
+- Text secondary: rgba(255,255,255,0.62)
+- Accent cyan: #00d9ff
+- Accent purple: #8b5ce6
+- Surface 1: rgba(255,255,255,0.04)
+- Border: rgba(255,255,255,0.12)
+
+ANTI-PATTERNS TO AVOID
+- NO centered everything
+- NO 3-column equal grids
+- NO uniform border-radius
+- NO default CSS easing
+- NO gradient text
+- NO harsh shadows
+- NO vague copy
+- NO pure black #000
+
+DELIVERABLES
+- Complete scrollable mockup
+- All sections with exact specs
+- Hex colors, px dimensions
+- Animation timing (curves, duration, stagger)
+- Hover/active states for interactive elements
+- Mobile responsive mockup (375px, 768px, 1280px)
+- Before/after scroll effects visible
+- Production-ready specifications
+
+Generate complete page mockup now with ALL specifications.
+
+═══════════════════════════════════════════════════════════════════════════════
+HOW TO USE THESE PROMPTS
+═════════════════════════════════════════════════════════════════════════════════
+
+1. OPEN Claude or ChatGPT
+2. COPY entire prompt above (choose which section you want)
+3. PASTE into message
+4. SEND with optional modifications:
+   - "Make the hero more asymmetric"
+   - "Increase the gap between sections to 140px"
+   - "Show 3 versions and tell me which is most stare-worthy"
+5. EVALUATE using checklist below
+6. ITERATE on best version with specific tweaks
+7. EXPORT specs for implementation
+
+═════════════════════════════════════════════════════════════════════════════════
+EVALUATION CHECKLIST (After AI Generates Mockup)
+═════════════════════════════════════════════════════════════════════════════════
+
+☑ Asymmetry visible (2-col hero, 2+1 grid)
+☑ Animations use custom curves (NOT "ease")
+☑ One accent color (#00d9ff) used strategically
+☑ Typography is 300-400 weight (ultra-light display)
+☑ Whitespace is generous (120px+ gaps)
+☑ Shadows are soft (2-8% opacity) or absent
+☑ Data visualization is animated (not static)
+☑ Copy is specific to Pigeon (privacy, encryption)
+☑ Hover states are smooth and refined
+☑ Border-radius varies by component role
+☑ Colors match exact hex values
+☑ Spacing in px, precise dimensions
+☑ No centered symmetry
+☑ No 3-column feature grids
+☑ Mobile responsive mockup provided
+
+═════════════════════════════════════════════════════════════════════════════════
+
+These prompts are production-ready specifications. Share freely, iterate
+fearlessly, and watch AI generate ultra-high-fidelity stare-worthy designs.
+
+Good luck. The results will be phenomenal. ✨
+
+═════════════════════════════════════════════════════════════════════════════════

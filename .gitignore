@@ -150,3 +150,9 @@ convert.js
 /package.json
 node_modules
 .blackboxcli/
+
+# Local AI assistant artifacts
+claude-session.jsonl
+codex-session.jsonl
+agentic-engineering-grant-application.md
+
