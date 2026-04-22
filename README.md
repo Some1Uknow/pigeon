@@ -1,72 +1,145 @@
-# Pigeon 🐦
+# Pigeon
 
-### The Unstoppable Messenger.
+Privacy superapp for Solana wallets.
 
-> "Privacy is not a feature. It is a human right."
+Pigeon starts with a simple idea: your wallet should be enough to move, swap, and communicate privately without handing your identity, contacts, or payment trail to a centralized app.
 
----
+Today, Pigeon is a Solana privacy app in devnet testing. The first shipped module is encrypted wallet-to-wallet chat. The next MVP milestone is private money movement: Umbra for private transfers, and Privacy Cash for private swap research once the real swap execution path is confirmed.
 
-### The Problem
-The internet has lost its way. Your private conversations are mined for data, sold to advertisers, or scanned by governments under the guise of "safety." Centralized servers are chokepoints—single points of failure that can be censored, subpoenaed, or shut down at a moment's whim.
+## What Works Today
 
-### The Solution
-**Pigeon** is the answer. We are building the first **unstoppable, wallet-to-wallet messenger** on Solana.
+- **Privacy lab:** A gated route for verifying Umbra and Privacy Cash integration readiness.
+- **Wallet identity:** Connect Phantom or Solflare and use the wallet as the app identity.
+- **Encrypted chat module:** Wallet-to-wallet encrypted messaging is live as the first app surface.
+- **On-chain anchoring:** The Solana program stores encrypted rolling message history.
+- **App shell:** Chat, transfer, swap, and protocol-lab routes are available in the client.
 
-We don't have servers. We don't have a database of your messages. We don't even have your phone number. 
+## Current Privacy Protocol Status
 
-Pigeon is a pure protocol connecting two cryptographic keypairs. It uses the Solana blockchain as a global, censorship-resistant communication layer.
+Pigeon does not treat privacy as a marketing label. A protocol is only considered ready when the SDK path, signer path, transaction flow, and end-user recovery states are verified.
 
-### Why Pigeon?
-*   **Sovereign Identity:** Your wallet is your ID. No email, no phone number, no SIM swaps. You own your social graph.
-*   **Truly Private:** End-to-End Encrypted (E2EE) using X25519 key exchange signed by your wallet. Mathematics guarantees your privacy, not a privacy policy.
-*   **Unstoppable:** The backend is Solana (devnet by default via RPC). As long as the chain produces blocks, Pigeon facilitates messages.
-*   **Lightning Fast:** Powered by Solana's high-performance runtime. Messages settle in milliseconds.
+| Area | Protocol | Status | Notes |
+| --- | --- | --- | --- |
+| Private transfers | Umbra | Next MVP path | Umbra exposes the right SDK primitives for registration, encrypted balances, receiver-claimable UTXOs, scanning, and claiming. Pigeon still needs a safe wallet signer bridge before real Umbra transactions are enabled. |
+| Private swaps | Privacy Cash | Blocked on confirmed swap API | Privacy Cash docs describe private swaps, but the public `privacycash@1.1.22` SDK currently exposes deposit, withdraw, balance, SOL, and SPL primitives. No documented public swap/Jupiter export has been verified yet. |
+| Private balance/deposit/withdraw tests | Privacy Cash | Testable in isolation | The SDK supports key derivation, private balance reads, SOL/SPL deposits, and SOL/SPL withdrawals. These are isolated behind the privacy lab route while swap execution remains blocked. |
+| Encrypted messaging | Pigeon program | Working devnet module | Chat proves wallet identity, encryption, and app shell patterns while private transfers and swaps are hardened. |
 
-### Architecture
-*   **Program:** Rust (Anchor Framework)
-*   **Client:** Vite + React
-*   **Encryption:** X25519 (ECDH) + ChaCha20-Poly1305 (AEAD)
-*   **Storage:** On-chain rolling buffer (last 10 messages).
+## Minimal Devnet MVP Plan
 
-### Architecture Diagram
+The goal is not to ship every privacy feature at once. The goal is to make one devnet path work reliably, then expand.
 
-![Pigeon high-level architecture](client/public/pigeon-flow.png)
+### Milestone 1 — Stable Privacy Lab
 
-### The Roadmap
+- Keep `/app/privacy-lab` as the only place where experimental privacy protocols run.
+- Show one clear protocol check instead of raw SDK controls.
+- Verify wallet capabilities: `publicKey`, `signMessage`, and `signTransaction`.
+- Verify circuit assets load before any Privacy Cash operation.
+- Block any swap execution until the real Privacy Cash swap endpoint or SDK function is confirmed.
 
-We are just getting started. The future of communication is decentralized.
+### Milestone 2 — Umbra Devnet Transfer
 
-- [x] Secure 1:1 Direct Messages
-- [x] On-chain User Registry (Public Key Discovery)
-- [x] Rolling Message History (last 10 on-chain)
-- [x] Signature-based Identity Verification
-- [ ] **Mobile App (Solana Seeker):** Native experience for freedom on the go.
-- [ ] **Double Ratchet Mechanism:** Signal-protocol style forward secrecy where keys rotate with every message.
-- [ ] **Zero-Knowledge Proofs (ZKPs):** Verify identity without revealing your social graph.
-- [ ] **Off-chain Signaling:** Metadata protection to obscure who is talking to whom.
-- [ ] **Private State (MagicBlock PER):** Private logic using Ephemeral Rollups.
-- [ ] **Longer History:** Encrypted off-chain storage + on-chain pointers (e.g., MagicBlock PER / IPFS / Arweave).
-- [ ] **Confidential Payments:** Send SOL/USDC privately alongside your messages using Token Extensions.
-- [ ] **Disappearing Messages:** Ephemeral messaging where history is cryptographically erased.
----
+- Build an audited signer bridge from the connected Solana wallet to Umbra’s expected signer interface.
+- Add one action: `Enable Private Transfers`.
+- Register the current wallet with Umbra on devnet.
+- Add encrypted balance query for one supported token.
+- Add one private transfer flow: sender creates a receiver-claimable UTXO, recipient scans and claims.
+- Add clear states: preparing, signing, submitted, claimable, claimed, failed.
 
-### Getting Started
+### Milestone 3 — Privacy Cash Devnet Swap Decision
 
-Join the revolution. Run the code.
+- Confirm whether Privacy Cash exposes a private swap API outside the public SDK.
+- If an official API exists, wrap only that documented path.
+- If no public API exists, do not fake it. Build a composed beta flow instead:
+  - withdraw from Privacy Cash to an ephemeral wallet,
+  - swap through Jupiter with strict slippage,
+  - deposit output back into Privacy Cash,
+  - use a relayer/fee payer so the user does not fund the ephemeral wallet from their main wallet.
+
+### Milestone 4 — End-User Smoothness
+
+- Hide protocol names behind simple actions: `Send privately` and `Swap privately`.
+- Show exact fees, expected output, and privacy caveats before signing.
+- Add retry and recovery paths for failed proofs, failed relays, and stuck pending transactions.
+- Add low-value devnet test fixtures so the full flow can be repeated safely.
+- Add production logging rules: never log wallet, amount, route, IP, and timestamp together.
+
+## Product Direction
+
+Pigeon should feel like a private superapp for wallets, not a protocol dashboard and not just a messenger.
+
+- **Send privately:** Umbra-powered private transfers after signer integration is verified.
+- **Swap privately:** Privacy Cash-powered or Privacy Cash-composed swaps after the swap route is confirmed.
+- **Chat privately:** encrypted wallet-to-wallet conversations as a built-in module.
+- **Stay in control:** every transaction is wallet-approved, with visible network, fee, and recipient details.
+
+## Architecture
+
+- **Client:** Vite, React, TypeScript
+- **Wallets:** Solana Wallet Adapter
+- **Program:** Anchor-based Solana program
+- **Current app module:** encrypted wallet-to-wallet chat
+- **Messaging encryption:** X25519 plus ChaCha20-Poly1305
+- **Privacy transfer research:** Umbra SDK
+- **Privacy swap research:** Privacy Cash SDK and protocol docs
+- **Storage:** on-chain encrypted rolling message buffer
+
+## Repository Structure
+
+```text
+client/          React app
+solana-program/  Anchor program
+docs/            Protocol research and implementation notes
+```
+
+## Getting Started
 
 ```bash
-# 1. Clone the repo
-git clone https://github.com/yourusername/pigeon.git
-
-# 2. Install Client Dependencies
-cd client
+git clone https://github.com/Some1Uknow/pigeon.git
+cd pigeon/client
 pnpm install
-
-# 3. Run local server
 pnpm dev
 ```
 
-**Requirements:**
-* Solana Wallet (Phantom recommened, Solflare works too)
-* Devnet SOL (Airdrop via CLI or faucet)
-* Helius Devnet URL in .env in /client folder
+Open the local Vite URL and connect Phantom or Solflare on devnet.
+
+## Environment
+
+Create `client/.env` with a devnet RPC endpoint:
+
+```bash
+VITE_RPC_URL=https://api.devnet.solana.com
+```
+
+For better reliability, use a Helius or QuickNode devnet URL.
+
+## Requirements
+
+- Node.js 18 or newer
+- pnpm
+- Phantom or Solflare
+- Devnet SOL for test transactions
+
+## Validation
+
+```bash
+cd client
+pnpm build
+```
+
+The full lint suite currently includes older unrelated issues. For privacy integration changes, run targeted lint against touched files until the existing lint debt is cleaned up.
+
+## Roadmap
+
+- [x] Privacy superapp shell
+- [x] Wallet-based identity
+- [x] Encrypted chat module
+- [x] On-chain encrypted message history
+- [x] Privacy lab route for protocol verification
+- [ ] Umbra wallet signer bridge
+- [ ] Umbra devnet private transfer flow
+- [ ] Privacy Cash swap API confirmation
+- [ ] Private swap beta flow
+- [ ] Relayer and fee-payer service
+- [ ] Mobile-first privacy app
+- [ ] Longer encrypted history with off-chain storage pointers
