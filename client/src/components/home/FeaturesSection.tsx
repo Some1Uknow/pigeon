@@ -1,46 +1,57 @@
-import FeatureCard from "./FeatureCard";
+import { TextReveal } from "../magicui/text-reveal";
 
-const features = [
-    {
-        icon: "lock",
-        title: "Zero Trust Base",
-        description: "Messages are encrypted before they leave the device. Wallet signatures prove identity without accounts.",
-    },
-    {
-        icon: "bolt",
-        title: "Sub-Second UX",
-        description: "Solana settlement, websocket updates, and local encryption keep the thread feeling immediate.",
-    },
-    {
-        icon: "hub",
-        title: "Superapp Rail",
-        description: "Chat, swap, and transfer actions sit in one encrypted wallet-to-wallet command surface.",
-    },
+const workflowSteps = [
+  {
+    title: "Connect your wallet",
+    description: "Sign in once and keep the same identity everywhere.",
+  },
+  {
+    title: "Start a private chat",
+    description: "Messages are encrypted before they leave your device.",
+  },
+  {
+    title: "Swap or transfer",
+    description: "Move from message to action without leaving the app.",
+  },
 ];
 
 export default function FeaturesSection() {
-    return (
-        <div className="space-y-16">
-            <div className="fade-in-up stagger-2 grid grid-cols-1 items-end gap-6 md:grid-cols-12">
-                <div className="md:col-span-6">
-                    <div className="home-section-label">
-                        <span className="material-symbols-outlined" aria-hidden="true">folder_open</span>
-                        WHY_PIGEON.SYS
-                    </div>
-                    <h2 className="mt-6 font-display text-3xl font-bold uppercase text-[var(--color-text)] md:text-4xl">
-                        Private messaging becomes the wallet home base.
-                    </h2>
-                </div>
-                <p className="text-base leading-relaxed text-[var(--color-text-muted)] md:col-span-6 md:text-right md:text-lg">
-                    Pigeon removes server trust from conversation and expands the thread into token movement.
-                </p>
-            </div>
-
-            <div className="fade-in-up stagger-3 grid grid-cols-1 gap-8 md:grid-cols-3">
-                {features.map((feature, index) => (
-                    <FeatureCard key={index} {...feature} />
-                ))}
-            </div>
+  return (
+    <div className="space-y-14">
+      <div className="grid grid-cols-1 gap-10 md:grid-cols-12 md:gap-14">
+        <div className="space-y-5 md:col-span-5">
+          <div className="home-section-label">
+            <span className="material-symbols-outlined" aria-hidden="true">
+              route
+            </span>
+            How it works
+          </div>
+          <h2 className="font-display text-4xl font-bold tracking-[-0.02em] text-[var(--color-text)] md:text-5xl">
+            Simple flow. No context switching.
+          </h2>
+          <TextReveal className="max-w-lg text-base md:text-lg">
+            The app is built for one path: connect, talk, and act.
+          </TextReveal>
         </div>
-    );
+
+        <ol className="space-y-4 md:col-span-7">
+          {workflowSteps.map((step, index) => (
+            <li key={step.title} className="card-surface grid grid-cols-[auto_1fr] gap-5 p-6">
+              <div className="font-label text-[0.68rem] uppercase tracking-[0.14em] text-[var(--color-secondary)]">
+                {String(index + 1).padStart(2, "0")}
+              </div>
+              <div className="space-y-2">
+                <h3 className="font-display text-xl font-bold tracking-[-0.01em] text-[var(--color-text)]">
+                  {step.title}
+                </h3>
+                <p className="text-sm leading-relaxed text-[var(--color-text-muted)] md:text-base">
+                  {step.description}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+  );
 }

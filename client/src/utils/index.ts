@@ -5,3 +5,4 @@ export * from "./encryption";
 export * from "./format";
 export * from "./magicblock";
 export * from "./transaction";
+export * from "./cn";

@@ -1,46 +1,54 @@
+const productCards = [
+  {
+    title: "Chat",
+    description: "Encrypted wallet-to-wallet messages for private coordination.",
+    icon: "chat_bubble",
+  },
+  {
+    title: "Swap",
+    description: "Move from conversation to token action without changing context.",
+    icon: "swap_horiz",
+  },
+  {
+    title: "Transfer",
+    description: "Send value directly to the wallet already in your private thread.",
+    icon: "send_money",
+  },
+];
 
 export default function StatsSection() {
-    return (
-        <div className="grid grid-cols-1 items-start gap-10 md:grid-cols-12">
-            <div className="md:col-span-4">
-                <div className="home-section-label">
-                    <span className="material-symbols-outlined" aria-hidden="true">monitoring</span>
-                    LIVE_METRICS
-                </div>
-                <h2 className="mt-6 font-display text-3xl font-bold uppercase text-[var(--color-text)] md:text-4xl">
-                    Superapp primitives, measured in trust removed.
-                </h2>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 md:col-span-8 md:grid-cols-3">
-                <div className="glass-panel rounded-lg p-6">
-                    <div className="stat-highlight mb-2 font-display text-5xl font-bold">
-                        0
-                    </div>
-                    <p className="font-label text-xs uppercase tracking-[0.08em] text-[var(--color-text-muted)]">
-                        SERVERS_TRUSTED
-                    </p>
-                </div>
-
-                <div className="glass-panel rounded-lg p-6">
-                    <div className="mb-2 font-display text-5xl font-bold text-[var(--color-primary)]">
-                        100%
-                    </div>
-                    <p className="font-label text-xs uppercase tracking-[0.08em] text-[var(--color-text-muted)]">
-                        PAYLOAD_ENCRYPTION
-                    </p>
-                </div>
-
-                <div className="glass-panel rounded-lg p-6">
-                    <div className="mb-2 flex items-center gap-3 font-label text-xl text-[var(--color-secondary)]">
-                        <span className="status-dot" />
-                        SYNCING
-                    </div>
-                    <p className="font-label text-xs uppercase tracking-[0.08em] text-[var(--color-text-muted)]">
-                        RECENT_BLOCKS
-                    </p>
-                </div>
-            </div>
+  return (
+    <div className="grid grid-cols-1 items-center gap-10 md:grid-cols-12 md:gap-16">
+      <div className="space-y-6 md:col-span-5">
+        <div className="home-section-label">
+          <span className="material-symbols-outlined" aria-hidden="true">
+            monitoring
+          </span>
+          Product detail
         </div>
-    );
+        <h2 className="font-display text-4xl font-bold tracking-[-0.02em] text-[var(--color-text)] md:text-5xl">
+          Private by default.
+        </h2>
+        <p className="max-w-lg text-base leading-relaxed text-[var(--color-text-muted)] md:text-lg">
+          Chat, swap, and transfer stay in one wallet-native flow.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:col-span-7 md:grid-cols-3">
+        {productCards.map((card) => (
+          <article key={card.title} className="glass-panel rounded-lg p-6">
+            <span className="material-symbols-outlined mb-5 text-3xl text-[var(--color-secondary)]" aria-hidden="true">
+              {card.icon}
+            </span>
+            <h3 className="font-display text-2xl font-bold tracking-[-0.01em] text-[var(--color-text)]">
+              {card.title}
+            </h3>
+            <p className="mt-3 text-sm leading-relaxed text-[var(--color-text-muted)]">
+              {card.description}
+            </p>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
 }
